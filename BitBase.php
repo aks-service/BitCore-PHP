@@ -632,5 +632,9 @@ class BitBase {
 
         return $text;
     }
-
+    
+    public static function getIP()
+    {
+        return isset($_SERVER['HTTP_X_FORWARDED_FOR']) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : $_SERVER["REMOTE_ADDR"];
+    }
 }

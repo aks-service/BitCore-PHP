@@ -41,16 +41,26 @@ class Vars {
         'isbool' => [['Vars', '_tcall'], FILTER_VALIDATE_BOOLEAN, []],
         'isfloat' => [['Vars', '_tcall'], FILTER_VALIDATE_FLOAT, []],
         'isurl' => [['Vars', '_tcall'], FILTER_VALIDATE_URL, []],
+        'isuuid' => [['Vars', 'isuuid'], FILTER_VALIDATE_URL, []],
         'isip' => [['Vars', '_tcall'], FILTER_VALIDATE_IP, []],
         'isemail' => [['Vars', '_tcall'], FILTER_VALIDATE_EMAIL, []],
         'getint' => [['Vars', '_tcall'], FILTER_SANITIZE_NUMBER_INT, []],
         'getfloat' => [['Vars', '_tcall'], FILTER_SANITIZE_NUMBER_FLOAT, []],
         'getstring' => [['Vars', '_tcall'], FILTER_SANITIZE_STRING, []],
         'geturl' => [['Vars', '_tcall'], FILTER_SANITIZE_URL, []],
-        'getemail' => [['Vars', '_tcall'], FILTER_SANITIZE_EMAIL, []]
+        'getemail' => [['Vars', '_tcall'], FILTER_SANITIZE_EMAIL, []],
+        'getuuid' => [['Vars', 'getuuid'], FILTER_VALIDATE_URL, []]
     );
-    private static function __error() {
-        throw new ErrorException();
+    private static function __error($filter, $var, $options) {
+        throw new ToDoException("Hmm Bearbeiten()");
+    }
+    
+    public static function isuuid($filter, $var, $options = array()) {
+        return UUID::is_valid($var);
+    }
+    
+    public static function getuuid($filter, $var, $options = array()) {
+        return UUID::is_valid($var) ? $var : false;
     }
     
     private static function _tcall($filter, $var, $options = array()) {
@@ -58,7 +68,7 @@ class Vars {
     }
     
     public static function registerCall($key,$func,$filter = FILTER_CALLBACK,$opt = array()){
-        self::$calls[$key] = [$func,$filter,$opt];
+        self::$calls[strtolower($key)] = [$func,$filter,$opt];
     }
     
     private static $callTable = array('session'=> '_SESSION','post'=>'_POST','get'=>'_GET','request'=>'_REQUEST','env'=>'_ENV','file'=>'_FILES','arg'=>'argv');
@@ -87,6 +97,7 @@ class Vars {
             return isset(self::$callTable[$name]) ? isset($GLOBALS[self::$callTable[$name]][$var]) : null;
         
         $var = isset(self::$callTable[$name]) ? (isset($GLOBALS[self::$callTable[$name]][$var]) ? $GLOBALS[self::$callTable[$name]][$var] : false) : $var;
+        
         list($f,$filter,$stdOptions)  = isset(self::$calls[$func]) ? self::$calls[$func] : self::$error;
         
         $t = $f($filter,$var,array_merge($stdOptions,$options));

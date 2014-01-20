@@ -22,6 +22,15 @@ abstract class BSite implements ISite {
     protected static $_user = NULL;
     protected static $_modules = array();
 
+    
+    public static function setUser($user) {
+        self::$_user = $user;
+    }
+
+    public static function getUser() {
+        return self::$_user;
+    }
+    
     public static function setModule($namespace) {
         //self::$_modules = 
     }
@@ -149,5 +158,3 @@ abstract class BSite implements ISite {
     }
 
 }
-
-?>
