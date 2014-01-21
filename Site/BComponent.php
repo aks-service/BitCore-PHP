@@ -43,8 +43,8 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
     protected $_preparedStatements = array();
 
     //XXX: isinrole? other LessPHP tags
-    protected $_starttaghandler = array('template' => 'LoadTemplate', 'auto' => 'setAuto', 'return' => 'setReturn', 'var' => 'setVar', 'header' => 'setHeader','prepare' => 'setPrepare');
-    protected $_rendertaghandler = array('module' => 'LoadModule');
+    protected $_starttaghandler = array('template' => 'LoadTemplate', 'auto' => 'setAuto', 'return' => 'setReturn', 'header' => 'setHeader','prepare' => 'setPrepare');
+    protected $_rendertaghandler = array('var' => 'setVar','module' => 'LoadModule');
     protected $_finishtaghandler = array('component' => 'LoadComponent');
 
     public function setDB($key, Array $value) {
@@ -227,8 +227,6 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
         $this->_page = $root->getPage();
         $this->_route = $root->getRoute();
         $this->Init();
-        $oRefl = new ReflectionClass($this);
-        $this->_less = new LessPHP($this, $oRefl);
     }
 
     /**
@@ -238,6 +236,9 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
         $this->_auto = static::AUTO;
         $this->_type = static::TYPE;
         $this->_renderReturn = true;
+        
+        $oRefl = new ReflectionClass($this);
+        $this->_less = new LessPHP($this, $oRefl);
     }
 
     /**
@@ -346,6 +347,11 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
     public function Render() {
         $func = static::RENDER . 'Index';
         $this->_less->run(LessPHP::RENDER);
+        
+        //Append Templates :D
+        foreach ($this->_templates as $key => $v)
+                $this->beforeRenderTemplate($key);
+        
         $this->$func();
         $this->_less->run(LessPHP::FINISH);
         //XXX:IMPLEMENT CACHE + ActionsFunctions
@@ -358,8 +364,6 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
      */
     public function Finish() {
         if ($this->_auto && $this->_renderReturn) {
-            foreach ($this->_templates as $key => $v)
-                $this->beforeRenderTemplate($key);
             foreach ($this->_components as $key => $v)
                 $this->beforeComponent($key);
         }
@@ -415,7 +419,8 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
      * Returns the element at the specified offset.
      * This method is required by the interface ArrayAccess.
      * @param integer the offset to retrieve element.
-     * @return mixed the element at the offset, null if no element is found at the offset
+     * @see phpQuery::pq()
+     * @return phpQueryObject|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery|NULL|Array
      */
     public function offsetGet($offset) {
         return pq($offset,$this->_page);

@@ -101,6 +101,11 @@ abstract class BPage extends Component implements IPage {
 
     public function Render() {
         $this->_less->run(LessPHP::RENDER);
+        
+        //Append Templates :D
+        foreach ($this->_templates as $key => $v)
+            $this->beforeRenderTemplate($key);
+        
         if (!is_null($this->_viewport)) {
             $func = $this->_viewport;
             if ($this->_lessmethod instanceof LessPHP) {

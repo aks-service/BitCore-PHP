@@ -130,14 +130,9 @@ class Route extends ArrayObject {
 
         $is_match = $this->isRegexMatch($path);
         $_is_match = $this->isMethodMatch($server) && $this->isSecureMatch($server) && $this->isCustomMatch($server);
-
-        if ($this->match_force !== null && $is_match && !$_is_match)
-            return true;
-
-
+        
         if (!$is_match || !$_is_match)
             return false;
-
 
         // populate the path matches into the route values
         foreach ($this->matches as $key => $val) {
@@ -166,7 +161,7 @@ class Route extends ArrayObject {
                 unset($this['values']['__wildcard__']);
             }
         }
-
+        $this->match_force = null;
         // done!
         return true;
     }

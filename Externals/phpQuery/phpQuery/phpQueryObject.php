@@ -2249,7 +2249,7 @@ class phpQueryObject
 	 */
 	public function text($text = null, $callback1 = null, $callback2 = null, $callback3 = null) {
 		if (isset($text))
-			return $this->html(htmlspecialchars($text));
+			return $this->html(htmlspecialchars(utf8_encode($text)));
 		$args = func_get_args();
 		$args = array_slice($args, 1);
 		$return = '';

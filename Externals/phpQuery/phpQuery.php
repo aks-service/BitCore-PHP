@@ -47,6 +47,7 @@ abstract class phpQuery {
     public static $debug = false;
     public static $documents = array();
     public static $defaultDocumentID = null;
+
     /**
      * Applies only to HTML.
      *
@@ -179,7 +180,7 @@ abstract class phpQuery {
             }
         } else
             $domId = $context;
-        
+
         if ($arg1 instanceof phpQueryObject) {
 //		if (is_object($arg1) && (get_class($arg1) == 'phpQueryObject' || $arg1 instanceof PHPQUERY || is_subclass_of($arg1, 'phpQueryObject'))) {
             /**
@@ -1284,7 +1285,7 @@ class phpQueryPlugins {
  * @author Tobiasz Cudnik <tobiasz.cudnik/gmail.com>
  * @package phpQuery
  */
-function pq($arg1,$context = null) {
+function pq($arg1, $context = null) {
     $args = func_get_args();
     return call_user_func_array(
             array('phpQuery', 'pq'), $args
