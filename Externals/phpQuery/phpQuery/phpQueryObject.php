@@ -1,4 +1,147 @@
 <?php
+
+class Selector{
+     // These are constants describing the content model
+    const PCDATA    = 0;
+    const RCDATA    = 1;
+    const CDATA     = 2;
+    const PLAINTEXT = 3;
+
+    // These are constants describing tokens
+    // XXX should probably be moved somewhere else, probably the
+    // HTML5 class.
+    const DOCTYPE        = 0;
+    const STARTTAG       = 1;
+    const ENDTAG         = 2;
+    const COMMENT        = 3;
+    const CHARACTER      = 4;
+    const SPACECHARACTER = 5;
+    const EOF            = 6;
+    const PARSEERROR     = 7;
+
+    // These are constants representing bunches of characters.
+    const ALPHA       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    const UPPER_ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const LOWER_ALPHA = 'abcdefghijklmnopqrstuvwxyz';
+    const DIGIT       = '0123456789';
+    const HEX         = '0123456789ABCDEFabcdef';
+    const WHITESPACE  = "\t\n\x0c ";
+    
+    static protected $cache = array();
+    
+    static function parse(&$data)
+    {
+        if(!$data)
+            return[[]];
+        
+        $hash = md5($data);
+        if(isset(self::$cache[$hash]))
+            return self::$cache[$hash];
+        
+        $stream = new InputStream(trim(
+			preg_replace('@\s+@', ' ',
+				preg_replace('@\s*(>|\\+|~)\s*@', '\\1', $data)
+			)
+		));
+        
+        $specialChars = array('>' => null,' ' => null);
+    //		$specialCharsMapping = array('/' => '>');
+        $tagChars = array('*' => null, '|'  => null, '-'  => null);
+        
+        $queries = [[]];
+        $return =& $queries[0];
+        
+        static $ch;
+            if(!$ch)
+                $ch = array_flip(str_split(self::ALPHA));
+            
+        while($char = $stream->char()) {
+                /* Consume the next input character */
+                if (isset($ch[$char]) || isset($tagChars[$char])) {
+                    $return[] = $char.$stream->charsWhile(self::ALPHA.self::DIGIT.'*|-');
+                } 
+                elseif($char === '>' || $char === ' ')
+                {
+                    $return[] = $char;
+                }
+                elseif ( isset($specialCharsMapping[$char]) ) {
+                    $return[] = $specialCharsMapping[$char];
+                    die('hmm');
+                }
+                elseif($char === '/' || $stream->nchar() === '/')
+                {
+                    $stream->char();
+                    $return[] = ' ';
+                }
+                elseif($char === ',')
+                {
+                    $stream->char();
+                    $queries[] = array();
+                    $return =& $queries[ count($queries)-1 ];
+                    $stream->charsWhile(' ');
+                }
+                elseif ( $char === '.') {
+                    $return[] = $char.$stream->charsWhile(self::ALPHA.self::DIGIT.'.-_');
+                }
+                elseif($char === '#'){
+                    $return[] = $char.$stream->charsWhile(self::ALPHA.self::DIGIT.'-_');
+                }elseif ($char === '~' || $char === '+') {
+                        $space = $stream->charsWhile(' ');
+                        $data  = $stream->charsWhile(self::ALPHA.'.-*');
+                        $return[] = $space.$data;
+                }
+                elseif($char === "\t" || $char === "\n" || $char === "\x0c" ) {
+                    $stream->charsWhile(self::WHITESPACE);
+                } 
+                elseif ($char === '[') {
+                        $stack = 1;
+                        $tmp = $char;
+                        while( $c = $stream->char()) {
+                                $tmp .= $c;
+                                if ( $c == '[') {
+                                        $stack++;
+                                } else if ( $c == ']') {
+                                        $stack--;
+                                        if (! $stack )
+                                                break;
+                                }
+                        }
+                        $return[] = $tmp;
+                // PSEUDO CLASSES
+                } elseif ($char == ':') {
+                        $stack = 1;
+                        $tmp = $char.$stream->charsWhile(self::ALPHA.self::DIGIT.'-');
+                        // with arguments ?
+                        if ( $stream->nchar() == '(') {
+                                $tmp .= $stream->char();
+                                $stack = 1;
+                                while( $c = $stream->char()) {
+                                        $tmp .= $c;
+                                        if ( $c == '(') {
+                                                $stack++;
+                                        } else if ( $c == ')') {
+                                                $stack--;
+                                                if (! $stack )
+                                                        break;
+                                        }
+                                }
+                        }
+                        $return[] = $tmp;
+                }
+             }
+            foreach($queries as $k => $q) {
+                    if (isset($q[0])) {
+                        if (isset($q[0][0]) && $q[0][0] == ':')
+                                array_unshift($queries[$k], '*');
+                        if ($q[0] != '>')
+                                array_unshift($queries[$k], ' ');
+                    }
+            }
+            self::$cache[$hash] = $queries;
+            return $queries;
+    }
+}
+
 /**
  * Class representing phpQuery objects.
  *
@@ -306,170 +449,6 @@ class phpQueryObject
 			: preg_match('@\w@', $char);
 	}
 	/**
-	 * @access private
-	 */
-	protected function parseSelector($query) {
-		// clean spaces
-		// TODO include this inside parsing ?
-		$query = trim(
-			preg_replace('@\s+@', ' ',
-				preg_replace('@\s*(>|\\+|~)\s*@', '\\1', $query)
-			)
-		);
-		$queries = array(array());
-		if (! $query)
-			return $queries;
-		$return =& $queries[0];
-		$specialChars = array('>',' ');
-//		$specialCharsMapping = array('/' => '>');
-		$specialCharsMapping = array();
-		$strlen = mb_strlen($query);
-		$classChars = array('.', '-');
-		$pseudoChars = array('-');
-		$tagChars = array('*', '|', '-');
-		// split multibyte string
-		// http://code.google.com/p/phpquery/issues/detail?id=76
-		$_query = array();
-		for ($i=0; $i<$strlen; $i++)
-			$_query[] = mb_substr($query, $i, 1);
-		$query = $_query;
-		// it works, but i dont like it...
-		$i = 0;
-		while( $i < $strlen) {
-			$c = $query[$i];
-			$tmp = '';
-			// TAG
-			if ($this->isChar($c) || in_array($c, $tagChars)) {
-				while(isset($query[$i])
-					&& ($this->isChar($query[$i]) || in_array($query[$i], $tagChars))) {
-					$tmp .= $query[$i];
-					$i++;
-				}
-				$return[] = $tmp;
-			// IDs
-			} else if ( $c == '#') {
-				$i++;
-				while( isset($query[$i]) && ($this->isChar($query[$i]) || $query[$i] == '-')) {
-					$tmp .= $query[$i];
-					$i++;
-				}
-				$return[] = '#'.$tmp;
-			// SPECIAL CHARS
-			} else if (in_array($c, $specialChars)) {
-				$return[] = $c;
-				$i++;
-			// MAPPED SPECIAL MULTICHARS
-//			} else if ( $c.$query[$i+1] == '//') {
-//				$return[] = ' ';
-//				$i = $i+2;
-			// MAPPED SPECIAL CHARS
-			} else if ( isset($specialCharsMapping[$c])) {
-				$return[] = $specialCharsMapping[$c];
-				$i++;
-			// COMMA
-			} else if ( $c == ',') {
-				$queries[] = array();
-				$return =& $queries[ count($queries)-1 ];
-				$i++;
-				while( isset($query[$i]) && $query[$i] == ' ')
-					$i++;
-			// CLASSES
-			} else if ($c == '.') {
-				while( isset($query[$i]) && ($this->isChar($query[$i]) || in_array($query[$i], $classChars))) {
-					$tmp .= $query[$i];
-					$i++;
-				}
-				$return[] = $tmp;
-			// ~ General Sibling Selector
-			} else if ($c == '~') {
-				$spaceAllowed = true;
-				$tmp .= $query[$i++];
-				while( isset($query[$i])
-					&& ($this->isChar($query[$i])
-						|| in_array($query[$i], $classChars)
-						|| $query[$i] == '*'
-						|| ($query[$i] == ' ' && $spaceAllowed)
-					)) {
-					if ($query[$i] != ' ')
-						$spaceAllowed = false;
-					$tmp .= $query[$i];
-					$i++;
-				}
-				$return[] = $tmp;
-			// + Adjacent sibling selectors
-			} else if ($c == '+') {
-				$spaceAllowed = true;
-				$tmp .= $query[$i++];
-				while( isset($query[$i])
-					&& ($this->isChar($query[$i])
-						|| in_array($query[$i], $classChars)
-						|| $query[$i] == '*'
-						|| ($spaceAllowed && $query[$i] == ' ')
-					)) {
-					if ($query[$i] != ' ')
-						$spaceAllowed = false;
-					$tmp .= $query[$i];
-					$i++;
-				}
-				$return[] = $tmp;
-			// ATTRS
-			} else if ($c == '[') {
-				$stack = 1;
-				$tmp .= $c;
-				while( isset($query[++$i])) {
-					$tmp .= $query[$i];
-					if ( $query[$i] == '[') {
-						$stack++;
-					} else if ( $query[$i] == ']') {
-						$stack--;
-						if (! $stack )
-							break;
-					}
-				}
-				$return[] = $tmp;
-				$i++;
-			// PSEUDO CLASSES
-			} else if ($c == ':') {
-				$stack = 1;
-				$tmp .= $query[$i++];
-				while( isset($query[$i]) && ($this->isChar($query[$i]) || in_array($query[$i], $pseudoChars))) {
-					$tmp .= $query[$i];
-					$i++;
-				}
-				// with arguments ?
-				if ( isset($query[$i]) && $query[$i] == '(') {
-					$tmp .= $query[$i];
-					$stack = 1;
-					while( isset($query[++$i])) {
-						$tmp .= $query[$i];
-						if ( $query[$i] == '(') {
-							$stack++;
-						} else if ( $query[$i] == ')') {
-							$stack--;
-							if (! $stack )
-								break;
-						}
-					}
-					$return[] = $tmp;
-					$i++;
-				} else {
-					$return[] = $tmp;
-				}
-			} else {
-				$i++;
-			}
-		}
-		foreach($queries as $k => $q) {
-			if (isset($q[0])) {
-				if (isset($q[0][0]) && $q[0][0] == ':')
-					array_unshift($queries[$k], '*');
-				if ($q[0] != '>')
-					array_unshift($queries[$k], ' ');
-			}
-		}
-		return $queries;
-	}
-	/**
 	 * Return matched DOM nodes.
 	 *
 	 * @param int $index
@@ -572,6 +551,15 @@ class phpQueryObject
 		}
 		return $new;
 	}
+        
+        
+        static private $explodeCache = array();
+        
+        protected static function ex($var,$delimiter = " "){
+            $t = array_flip(explode($delimiter, $var));
+            return (object)['cnt'=>count($t),'ary' =>$t];
+        }
+        
 	/**
 	 * Enter description here...
 	 *
@@ -583,31 +571,26 @@ class phpQueryObject
 	 * @access private
 	 */
 	protected function matchClasses($class, $node) {
-		// multi-class
-		if ( mb_strpos($class, '.', 1)) {
-			$classes = explode('.', substr($class, 1));
-			$classesCount = count( $classes );
-			$nodeClasses = explode(' ', $node->getAttribute('class') );
-			$nodeClassesCount = count( $nodeClasses );
-			if ( $classesCount > $nodeClassesCount )
-				return false;
-			$diff = count(
-				array_diff(
-					$classes,
-					$nodeClasses
-				)
-			);
-			if (! $diff )
-				return true;
-		// single-class
-		} else {
-			return in_array(
-				// strip leading dot from class name
-				substr($class, 1),
-				// get classes for element as array
-				explode(' ', $node->getAttribute('class') )
-			);
-		}
+            $classes = $node->getAttribute('class');
+            if(!$classes)
+                return false;
+            
+            if(!isset(self::$explodeCache[$class]))
+                self::$explodeCache[$class] = self::ex(substr($class, 1),'.');
+            if(!isset(self::$explodeCache[$classes]))
+                self::$explodeCache[$classes] = self::ex($classes);
+            
+            if(self::$explodeCache[$class]->cnt > self::$explodeCache[$classes]->cnt)
+                return false;
+            
+            if(self::$explodeCache[$class]->cnt == 1)
+            if ( !count(array_diff_key(
+                            self::$explodeCache[$class]->ary,
+                            self::$explodeCache[$classes]->ary
+                    )) )
+                return true;
+            
+            return false;
 	}
 	/**
 	 * @access private
@@ -620,7 +603,7 @@ class phpQueryObject
 			$this->debug('Stack empty, skipping...');
 //		var_dump($this->elements[0]->nodeType);
 		// element, document
-		foreach($this->stack(array(1, 9, 13)) as $k => $stackNode) {
+		foreach($this->stack("1,9,13") as $k => $stackNode) {
 			$detachAfter = false;
 			// to work on detached nodes we need temporary place them somewhere
 			// thats because context xpath queries sucks ;]
@@ -702,7 +685,7 @@ class phpQueryObject
 			} else if ( $context instanceof self )
 				$this->elements = $context->elements;
 		}
-		$queries = $this->parseSelector($selectors);
+		$queries = Selector::parse($selectors);
 		$this->debug(array('FIND', $selectors, $queries));
 		$XQuery = '';
 		// remember stack state because of multi-queries
@@ -717,6 +700,7 @@ class phpQueryObject
 				$isTag = extension_loaded('mbstring') && phpQuery::$mbstringSupport
 					? mb_ereg_match('^[\w|\||-]+$', $s) || $s == '*'
 					: preg_match('@^[\w|\||-]+$@', $s) || $s == '*';
+                                
 				if ($isTag) {
 					if ($this->isXML()) {
 						// namespace support
@@ -837,10 +821,11 @@ class phpQueryObject
 				$this->runQuery($XQuery);
 				$XQuery = '';
 			}
-			foreach($this->elements as $node)
-				if (! $this->elementsContainsNode($node, $stack))
-					$stack[] = $node;
+                        foreach($this->elements as $node)
+                            //if (!$this->elementsContainsNode($node, $stack)) Renew Logik hmm
+                                $stack[] = $node;
 		}
+                
 		$this->elements = $stack;
 		return $this->newInstance();
 	}
@@ -926,7 +911,7 @@ class phpQueryObject
 			case 'has':
 				$selector = trim($args, "\"'");
 				$stack = array();
-				foreach($this->stack(1) as $el) {
+				foreach($this->stack("1") as $el) {
 					if ($this->find($selector, $el, true)->length)
 						$stack[] = $el;
 				}
@@ -1179,7 +1164,7 @@ class phpQueryObject
 			$this->elementsBackup = $this->elements;
 		$notSimpleSelector = array(' ', '>', '~', '+', '/');
 		if (! is_array($selectors))
-			$selectors = $this->parseSelector($selectors);
+			$selectors = Selector::parse($selectors);
 		if (! $_skipHistory)
 			$this->debug(array("Filtering:", $selectors));
 		$finalStack = array();
@@ -1355,7 +1340,7 @@ class phpQueryObject
 			$html = phpQuery::newDocument($html)->find($this->_loadSelector);
 			unset($this->_loadSelector);
 		}
-		foreach($this->stack(1) as $node) {
+		foreach($this->stack("1") as $node) {
 			phpQuery::pq($node, $this->getDocumentID())
 				->markup($html);
 		}
@@ -1576,7 +1561,7 @@ class phpQueryObject
 	 * @return phpQueryObject|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery
 	 */
 	public function wrapInnerPHP($codeBefore, $codeAfter) {
-		foreach($this->stack(1) as $node)
+		foreach($this->stack("1") as $node)
 			phpQuery::pq($node, $this->getDocumentID())->contents()
 				->wrapAllPHP($codeBefore, $codeAfter);
 		return $this;
@@ -1589,7 +1574,7 @@ class phpQueryObject
 	 */
 	public function contents() {
 		$stack = array();
-		foreach($this->stack(1) as $el) {
+		foreach($this->stack("1") as $el) {
 			// FIXME (fixed) http://code.google.com/p/phpquery/issues/detail?id=56
 //			if (! isset($el->childNodes))
 //				continue;
@@ -1607,7 +1592,7 @@ class phpQueryObject
 	 * @return phpQueryObject|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery
 	 */
 	public function contentsUnwrap() {
-		foreach($this->stack(1) as $node) {
+		foreach($this->stack("1") as $node) {
 			if (! $node->parentNode )
 				continue;
 			$childNodes = array();
@@ -1629,7 +1614,7 @@ class phpQueryObject
 	public function switchWith($markup) {
 		$markup = pq($markup, $this->getDocumentID());
 		$content = null;
-		foreach($this->stack(1) as $node) {
+		foreach($this->stack("1") as $node) {
 			pq($node)
 				->contents()->toReference($content)->end()
 				->replaceWith($markup->clone()->append($content));
@@ -1810,7 +1795,7 @@ class phpQueryObject
 			// INSERT
 			$nodes = $this->documentWrapper->import($html);
 			$this->empty();
-			foreach($this->stack(1) as $alreadyAdded => $node) {
+			foreach($this->stack("1") as $alreadyAdded => $node) {
 				// for now, limit events for textarea
 				if (($this->isXHTML() || $this->isHTML()) && $node->tagName == 'textarea')
 					$oldHtml = pq($node, $this->getDocumentID())->markup();
@@ -1903,7 +1888,7 @@ class phpQueryObject
 	 */
 	public function children($selector = null) {
 		$stack = array();
-		foreach($this->stack(1) as $node) {
+		foreach($this->stack("1") as $node) {
 //			foreach($node->getElementsByTagName('*') as $newNode) {
 			foreach($node->childNodes as $newNode) {
 				if ($newNode->nodeType != 1)
@@ -2443,7 +2428,7 @@ class phpQueryObject
 			$matched = $this->filter($selector, true)->stack();
 //			$matched = array();
 //			// simulate OR in filter() instead of AND 5y
-//			foreach($this->parseSelector($selector) as $s) {
+//			foreach(Selector::parse($selector) as $s) {
 //				$matched = array_merge($matched,
 //					$this->filter(array($s))->stack()
 //				);
@@ -2486,10 +2471,12 @@ class phpQueryObject
 		$loop = ! is_null($elementsStack)
 			? $elementsStack
 			: $this->elements;
+                
 		foreach($loop as $node) {
 			if ( $node->isSameNode( $nodeToCheck ) )
 				return true;
 		}
+                
 		return false;
 	}
 	/**
@@ -2543,11 +2530,15 @@ class phpQueryObject
 	public function stack($nodeTypes = null) {
 		if (!isset($nodeTypes))
 			return $this->elements;
-		if (!is_array($nodeTypes))
-			$nodeTypes = array($nodeTypes);
+                
+                
+                static $stringTypes;
+                if(!isset($stringTypes[$nodeTypes]))
+                    $stringTypes[$nodeTypes] = array_flip(explode(',',$nodeTypes));
+                
 		$return = array();
 		foreach($this->elements as $node) {
-			if (in_array($node->nodeType, $nodeTypes))
+			if (isset($stringTypes[$nodeTypes][$node->nodeType]))
 				$return[] = $node;
 		}
 		return $return;
@@ -2555,6 +2546,7 @@ class phpQueryObject
 	// TODO phpdoc; $oldAttr is result of hasAttribute, before any changes
 	protected function attrEvents($attr, $oldAttr, $oldValue, $node) {
 		// skip events for XML documents
+            
 		if (! $this->isXHTML() && ! $this->isHTML())
 			return;
 		$event = null;
@@ -2603,7 +2595,7 @@ class phpQueryObject
 		}
 	}
 	public function attr($attr = null, $value = null) {
-		foreach($this->stack(1) as $node) {
+		foreach($this->stack("1") as $node) {
 			if (! is_null($value)) {
 				$loop = $attr == '*'
 					? $this->getNodeAttrs($node)
@@ -2653,7 +2645,7 @@ class phpQueryObject
 //			if (function_exists('mb_detect_encoding') && mb_detect_encoding($value) == 'ASCII')
 //				$value	= mb_convert_encoding($value, 'UTF-8', 'HTML-ENTITIES');
 		}
-		foreach($this->stack(1) as $node) {
+		foreach($this->stack("1") as $node) {
 			if (! is_null($code)) {
 //				$attrNode = $this->DOM->createAttribute($attr);
 				$node->setAttribute($attr, $value);
@@ -2676,7 +2668,7 @@ class phpQueryObject
 	 * @return phpQueryObject|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery
 	 */
 	public function removeAttr($attr) {
-		foreach($this->stack(1) as $node) {
+		foreach($this->stack("1") as $node) {
 			$loop = $attr == '*'
 				? $this->getNodeAttrs($node)
 				: array($attr);
@@ -2707,7 +2699,7 @@ class phpQueryObject
 					return $this->eq(0)->attr('value');
 		} else {
 			$_val = null;
-			foreach($this->stack(1) as $node) {
+			foreach($this->stack("1") as $node) {
 				$node = pq($node, $this->getDocumentID());
 				if (is_array($val) && in_array($node->attr('type'), array('checkbox', 'radio'))) {
 					$isChecked = in_array($node->attr('value'), $val)
@@ -2725,7 +2717,7 @@ class phpQueryObject
 							foreach($val as $v)
 								$_val[] = $v;
 					}
-					foreach($node['option']->stack(1) as $option) {
+					foreach($node['option']->stack("1") as $option) {
 						$option = pq($option, $this->getDocumentID());
 						$selected = false;
 						// XXX: workaround for string comparsion, see issue #96
@@ -2772,7 +2764,7 @@ class phpQueryObject
 	public function addClass( $className) {
 		if (! $className)
 			return $this;
-		foreach($this->stack(1) as $node) {
+		foreach($this->stack("1") as $node) {
 			if (! $this->is(".$className", $node))
 				$node->setAttribute(
 					'class',
@@ -2787,7 +2779,7 @@ class phpQueryObject
 	 * @return phpQueryObject|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery
 	 */
 	public function addClassPHP( $className) {
-		foreach($this->stack(1) as $node) {
+		foreach($this->stack("1") as $node) {
 				$classes = $node->getAttribute('class');
 				$newValue = $classes
 					? $classes.' <'.'?php '.$className.' ?'.'>'
@@ -2803,7 +2795,7 @@ class phpQueryObject
 	 * @return	bool
 	 */
 	public function hasClass($className) {
-		foreach($this->stack(1) as $node) {
+		foreach($this->stack("1") as $node) {
 			if ( $this->is(".$className", $node))
 				return true;
 		}
@@ -2815,7 +2807,7 @@ class phpQueryObject
 	 * @return phpQueryObject|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery
 	 */
 	public function removeClass($className) {
-		foreach($this->stack(1) as $node) {
+		foreach($this->stack("1") as $node) {
 			$classes = explode( ' ', $node->getAttribute('class'));
 			if ( in_array($className, $classes)) {
 				$classes = array_diff($classes, array($className));
@@ -2833,7 +2825,7 @@ class phpQueryObject
 	 * @return phpQueryObject|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery
 	 */
 	public function toggleClass($className) {
-		foreach($this->stack(1) as $node) {
+		foreach($this->stack("1") as $node) {
 			if ( $this->is( $node, '.'.$className ))
 				$this->removeClass($className);
 			else
@@ -2859,7 +2851,7 @@ class phpQueryObject
 	 * @access private
 	 */
 	public function _empty() {
-		foreach($this->stack(1) as $node) {
+		foreach($this->stack("1") as $node) {
 			// thx to 'dave at dgx dot cz'
 			$node->nodeValue = '';
 		}

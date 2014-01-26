@@ -369,12 +369,20 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
         }
     }
 
+    protected function getContent($append = null){
+        static $h;
+        $append = $append ? $append : static::APPEND;
+        if(!isset($h[$append])) 
+            $h[$append] = pq($append,$this->_page);
+        
+        return $h[$append];
+    }
     /*
      * 
      */
     public function beforeRenderTemplate($key = '') {
         list($append, $func, $t) = $this->getTemplate($key, false);
-        pq($this->getVar($append, true), $this->_page)->$func($t);
+        $this->getContent($this->getVar($append, true))->$func($t);
     }
 
     /**
@@ -418,7 +426,6 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
     /**
      * Returns the element at the specified offset.
      * This method is required by the interface ArrayAccess.
-     * @param integer the offset to retrieve element.
      * @see phpQuery::pq()
      * @return phpQueryObject|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery|NULL|Array
      */

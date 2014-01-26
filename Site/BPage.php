@@ -24,11 +24,12 @@ abstract class BPage extends Component implements IPage {
     }
 
     public function Init() {
-        parent::Init();
-
+        
         $this->_starttaghandler = array_merge($this->_starttaghandler, array('wrapper' => 'setWrapper', 'wtemplate' => 'setWrapperTemplate'));
         $this->_rendertaghandler = array_merge($this->_rendertaghandler, array('title' => 'appendTitle'));
         $this->_finishtaghandler = array_merge($this->_finishtaghandler, array('css' => 'addCss'));
+        
+        parent::Init();
 
         $p = &$this->_page;
         $r = &$this->_route;
