@@ -34,7 +34,7 @@ class Selector{
         if(!$data)
             return[[]];
         
-        $hash = md5($data);
+        $hash = $data;
         if(isset(self::$cache[$hash]))
             return self::$cache[$hash];
         
@@ -554,12 +554,7 @@ class phpQueryObject
         
         
         static private $explodeCache = array();
-        
-        protected static function ex($var,$delimiter = " "){
-            $t = array_flip(explode($delimiter, $var));
-            return (object)['cnt'=>count($t),'ary' =>$t];
-        }
-        
+                
 	/**
 	 * Enter description here...
 	 *
@@ -576,18 +571,18 @@ class phpQueryObject
                 return false;
             
             if(!isset(self::$explodeCache[$class]))
-                self::$explodeCache[$class] = self::ex(substr($class, 1),'.');
+                self::$explodeCache[$class] = explode('.', substr($class, 1));
             if(!isset(self::$explodeCache[$classes]))
-                self::$explodeCache[$classes] = self::ex($classes);
+                self::$explodeCache[$classes] =explode(' ', $classes);
             
-            if(self::$explodeCache[$class]->cnt > self::$explodeCache[$classes]->cnt)
-                return false;
+            if(!isset(self::$explodeCache[$class.$classes])){
+                self::$explodeCache[$class.$classes] = count(array_diff(
+                            self::$explodeCache[$class],
+                            self::$explodeCache[$classes]
+                    ));
+            }
             
-            if(self::$explodeCache[$class]->cnt == 1)
-            if ( !count(array_diff_key(
-                            self::$explodeCache[$class]->ary,
-                            self::$explodeCache[$classes]->ary
-                    )) )
+            if (!self::$explodeCache[$class.$classes] )
                 return true;
             
             return false;
@@ -596,8 +591,7 @@ class phpQueryObject
 	 * @access private
 	 */
 	protected function runQuery($XQuery, $selector = null, $compare = null) {
-		if ($compare && ! method_exists($this, $compare))
-			return false;
+		
 		$stack = array();
 		if (! $this->elements)
 			$this->debug('Stack empty, skipping...');
@@ -642,7 +636,7 @@ class phpQueryObject
 					$phpQueryDebug = phpQuery::$debug;
 					phpQuery::$debug = false;
 					// TODO ??? use phpQuery::callbackRun()
-					if (call_user_func_array(array($this, $compare), array($selector, $node)))
+					if ($compare && $compare($selector, $node))
 						$matched = true;
 					phpQuery::$debug = $phpQueryDebug;
 				} else {
@@ -746,7 +740,7 @@ class phpQueryObject
 						$XQuery .= "[@{$attr}]";
 					}
 					if ($execute) {
-						$this->runQuery($XQuery, $s, 'is');
+						$this->runQuery($XQuery, $s,  array($this,'is'));
 						$XQuery = '';
 						if (! $this->length())
 							break;
@@ -758,7 +752,7 @@ class phpQueryObject
 					if ($delimiterBefore)
 						$XQuery .= '*';
 					$XQuery .= '[@class]';
-					$this->runQuery($XQuery, $s, 'matchClasses');
+					$this->runQuery($XQuery, $s, array($this,'matchClasses'));
 					$XQuery = '';
 					if (! $this->length() )
 						break;
@@ -2546,7 +2540,7 @@ class phpQueryObject
 	// TODO phpdoc; $oldAttr is result of hasAttribute, before any changes
 	protected function attrEvents($attr, $oldAttr, $oldValue, $node) {
 		// skip events for XML documents
-            
+                return; //Todo
 		if (! $this->isXHTML() && ! $this->isHTML())
 			return;
 		$event = null;

@@ -10,10 +10,8 @@ class Terms {
         return ((float) $usec + (float) $sec);
     }
     //
-    public static function Diff($time) {
-        $diff = date_diff(date_create(), date_create(date('Y-m-d H:i:s', $time)) /*, $absolute*/);
+    public static function Diff($time,$init = -1) {
+        $diff = date_diff(($init === -1  ? date_create() : date_create(date('Y-m-d H:i:s', $init))) , date_create(date('Y-m-d H:i:s', $time)) /*, $absolute*/);
         return $diff;
     }
 }
-
-?>
