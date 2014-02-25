@@ -421,6 +421,7 @@ class BitBase {
 
         return pathinfo($root . (($base === '*') ? '' : DS . $base . "." . $ext));
     }
+    
 
     /* @param string namespace
      * @param boolean Init to be appended if the namespace refers to a file

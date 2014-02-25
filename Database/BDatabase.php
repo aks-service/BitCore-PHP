@@ -53,7 +53,7 @@ class BDatabase extends PDO implements IDatabase {
      * @var string $password PDO Password
      * @var mixed $driver_options
      */
-    public function __construct($dsn, $username = '', $password = '', $driver_options = array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8")) {
+    public function __construct($dsn, $username = '', $password = '', $driver_options = array()) {
         $this->_dsn = $dsn;
         $this->_username = $username;
         $this->_password = $password;

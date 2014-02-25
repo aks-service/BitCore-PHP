@@ -26,7 +26,7 @@ abstract class BPage extends Component implements IPage {
     public function Init() {
         
         $this->_starttaghandler = array_merge($this->_starttaghandler, array('wrapper' => 'setWrapper', 'wtemplate' => 'setWrapperTemplate'));
-        $this->_rendertaghandler = array_merge($this->_rendertaghandler, array('title' => 'appendTitle'));
+        $this->_rendertaghandler = array_merge($this->_rendertaghandler, array('title' => 'addTitle'));
         $this->_finishtaghandler = array_merge($this->_finishtaghandler, array('css' => 'addCss'));
         
         parent::Init();
@@ -73,8 +73,8 @@ abstract class BPage extends Component implements IPage {
      * @param string $key Delemiter default  »
      * @return void
      */
-    public function appendTitle($title, $key = ' » ') {
-        pq('title', $this->_page)->append($key . $title);
+    public function addTitle($title, $key = ' » ',$func = 'append') {
+        pq('title', $this->_page)->$func($func === 'append' ? $key . $title : $title.$key );
     }
 
     /**

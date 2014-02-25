@@ -43,8 +43,8 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
     protected $_preparedStatements = array();
 
     //XXX: isinrole? other LessPHP tags
-    protected $_starttaghandler = array('template' => 'LoadTemplate', 'auto' => 'setAuto', 'return' => 'setReturn', 'header' => 'setHeader','prepare' => 'setPrepare');
-    protected $_rendertaghandler = array('var' => 'setVar','module' => 'LoadModule');
+    protected $_starttaghandler = array('var' => 'setVar','template' => 'LoadTemplate', 'auto' => 'setAuto', 'return' => 'setReturn', 'header' => 'setHeader','prepare' => 'setPrepare');
+    protected $_rendertaghandler = array('module' => 'LoadModule');
     protected $_finishtaghandler = array('component' => 'LoadComponent');
 
     public function setDB($key, Array $value) {
