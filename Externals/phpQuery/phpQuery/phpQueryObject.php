@@ -2909,14 +2909,16 @@ class phpQueryObject
 	 * @param <type> $value
 	 */
 	public function data($key, $value = null) {
-		if (! isset($value)) {
-			// TODO? implement specific jQuery behavior od returning parent values
-			// is child which we look up doesn't exist
-			return phpQuery::data($this->get(0), $key, $value, $this->getDocumentID());
+                if(is_array($key)){
+                    foreach($key as $k=>$v)
+                        $this->attr('data-'.$k, $v);               
+                    return $this;
+                }
+		elseif (! isset($value)) {
+                    return $this->attr('data-'.$key);
 		} else {
-			foreach($this as $node)
-				phpQuery::data($node, $key, $value, $this->getDocumentID());
-			return $this;
+                    $this->attr('data-'.$key, $value);
+                    return $this;
 		}
 	}
 	/**

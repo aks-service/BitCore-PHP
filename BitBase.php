@@ -316,7 +316,6 @@ class BitBase {
      */
     static function exceptionHandler($exception) {
         if (self::$_site !== null) {
-            
             echo self::$_site->doException($exception);
         } else {
             echo $exception;

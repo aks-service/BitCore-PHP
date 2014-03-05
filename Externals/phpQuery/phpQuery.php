@@ -1209,10 +1209,10 @@ abstract class phpQuery {
 
     public static function data($node, $name, $data, $documentID = null) {
         if (!$documentID)
-        // TODO check if this works
             $documentID = self::getDocumentID($node);
         $document = phpQuery::$documents[$documentID];
         $node = self::dataSetupNode($node, $documentID);
+        
         if (!isset($node->dataID))
             $node->dataID = ++phpQuery::$documents[$documentID]->uuid;
         $id = $node->dataID;
@@ -1220,6 +1220,7 @@ abstract class phpQuery {
             $document->data[$id] = array();
         if (!is_null($data))
             $document->data[$id][$name] = $data;
+        
         if ($name) {
             if (isset($document->data[$id][$name]))
                 return $document->data[$id][$name];

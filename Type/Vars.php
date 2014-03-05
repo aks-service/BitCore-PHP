@@ -41,7 +41,7 @@ class Vars {
         'isbool' => [['Vars', '_tcall'], FILTER_VALIDATE_BOOLEAN, []],
         'isfloat' => [['Vars', '_tcall'], FILTER_VALIDATE_FLOAT, []],
         'isurl' => [['Vars', '_tcall'], FILTER_VALIDATE_URL, []],
-        'isuuid' => [['Vars', 'isuuid'], FILTER_VALIDATE_URL, []],
+        'isuuid' => [['Vars', '_isuuid'], FILTER_VALIDATE_URL, []],
         'isip' => [['Vars', '_tcall'], FILTER_VALIDATE_IP, []],
         'isemail' => [['Vars', '_tcall'], FILTER_VALIDATE_EMAIL, []],
         'getint' => [['Vars', '_tcall'], FILTER_SANITIZE_NUMBER_INT, []],
@@ -49,17 +49,17 @@ class Vars {
         'getstring' => [['Vars', '_tcall'], FILTER_SANITIZE_STRING, []],
         'geturl' => [['Vars', '_tcall'], FILTER_SANITIZE_URL, []],
         'getemail' => [['Vars', '_tcall'], FILTER_SANITIZE_EMAIL, []],
-        'getuuid' => [['Vars', 'getuuid'], FILTER_VALIDATE_URL, []]
+        'getuuid' => [['Vars', '_getuuid'], FILTER_VALIDATE_URL, []]
     );
     private static function __error($filter, $var, $options) {
         throw new ToDoException("Hmm Bearbeiten()");
     }
     
-    public static function isuuid($filter, $var, $options = array()) {
+    public static function _isuuid($filter, $var, $options = array()) {
         return UUID::is_valid($var);
     }
     
-    public static function getuuid($filter, $var, $options = array()) {
+    public static function _getuuid($filter, $var, $options = array()) {
         return UUID::is_valid($var) ? $var : false;
     }
     

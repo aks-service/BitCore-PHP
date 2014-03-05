@@ -213,13 +213,7 @@ class Map implements IDebuggable {
                 return $route->generate($data);
             }
         }
-        return;
-        $v = self::$routes;
-
-        echo $name;
-        throw new PrintNiceException($v);
-        // no joy
-        throw new RouteNotFound($name);
+        return false;
     }
 
     /**

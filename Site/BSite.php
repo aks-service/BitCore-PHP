@@ -73,13 +73,10 @@ abstract class BSite implements ISite {
     abstract public function doRender();
     
     function doException(Exception $ex) {
-        if (!($ex instanceof BException))
-            return;
-        
         Bit::using('Bit.Exceptions.DocBlock.DocBlock');
         
         $js = Bit::$jQuery;
-        $doc = $ex->getTemplate();
+        $doc = (!($ex instanceof BException)) ? BitException::getTemplate() : $ex->getTemplate();
         
         $content = $js('div#content'           ,$doc);
         $js('<h1 class="border-left: 1px #fff dotted;">' . get_class($ex) . '</h1>')->appendTo($js('div.page-header-content',$doc));
@@ -103,8 +100,9 @@ abstract class BSite implements ISite {
             $content->append('<div class="docblock">'.$object.'</div>');
             
         }
-        
-        if ($ex instanceof PrintNiceException)
+        if ($ex instanceof PDOException)
+            $content->append($ex->getMessage());
+        elseif ($ex instanceof PrintNiceException)
             $content->append($ex->getErrorMessage());
         else
             $content->append($ex->getErrorMessage() . '');

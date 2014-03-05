@@ -173,7 +173,7 @@ abstract class BException extends Exception implements IException {
         exit(1);
     }
 
-    public function getTemplate() {
+    public static function getTemplate() {
         $dir = constant(get_called_class() . '::TEMPLATE_DIR') . DS;
         $file = $dir . get_called_class() . '.' . Bit::HTML_EXT;
         if (is_file($file) === false) {
