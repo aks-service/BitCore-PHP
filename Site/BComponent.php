@@ -373,7 +373,7 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
         static $h;
         $append = $append ? $append : static::APPEND;
         if(!isset($h[$append])) 
-            $h[$append] = pq($append,$this->_page);
+            $h[$append] = $this->_page->find($append);
         
         return $h[$append];
     }
@@ -430,7 +430,7 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
      * @return phpQueryObject|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery|NULL|Array
      */
     public function offsetGet($offset) {
-        return pq($offset,$this->_page);
+        return $this->_page->find($offset);
     }
 
     /**
@@ -440,7 +440,7 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
      * @param mixed the element value
      */
     public function offsetSet($offset, $item) {
-        pq($offset,$this->_page)->html = $item;
+        $this->_page->find($offset)->html = $item;
     }
 
     /**
@@ -449,7 +449,7 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
      * @param mixed the offset to unset element
      */
     public function offsetUnset($offset) {
-        pq($offset,$this->_page)->remove();
+        $this->_page->find($offset)->remove();
     }
     
 }

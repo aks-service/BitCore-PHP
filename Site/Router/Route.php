@@ -190,7 +190,7 @@ class Route extends ArrayObject {
         $data = array_merge($this->values, (array) $data);
         foreach ($data as $key => $val) {
             // Closures can't be cast to string
-            if (!($val instanceof Closure)) {
+            if (!($val instanceof Closure) && !is_array($val)) {
                 $replace["{:$key}"] = rawurlencode($val);
             }
         }

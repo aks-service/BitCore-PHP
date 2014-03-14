@@ -72,31 +72,36 @@ class Vars {
     }
     
     private static $callTable = array('session'=> '_SESSION','post'=>'_POST','get'=>'_GET','request'=>'_REQUEST','env'=>'_ENV','file'=>'_FILES','arg'=>'argv');
-    
+    private static $callCache = [];
     public static function __callStatic($name, $arguments) {
-        $name = explode('_',$name);
+        
+        if(!isset(self::$callCache[$name]))
+            self::$callCache[$name] = explode('_',strtolower($name));
+            
+        $name = self::$callCache[$name];
         if (!isset($arguments[0]))
             throw new UnexpectedType(($name> 2 ) ? 'var_empty': 'key_empty');
         
-        if(count($name) == 1){
+        if(!isset($name[1])){
             $func = $name[0];
             $name = null;
         }
         else 
             list($name,$func) = $name; //First Ignore Overhead
         
-        if(count($arguments) == 1)
+        if(!isset($arguments[1]))
             $arguments[] = array();
         
         list($var,$options) = $arguments;
         
-        $name = strtolower($name);
-        $func = strtolower($func);
+        $callT = isset(self::$callTable[$name]);
         
+        
+        $isset = $callT ? isset($GLOBALS[self::$callTable[$name]][$var]) : true;
         if($func == 'iset')
-            return isset(self::$callTable[$name]) ? isset($GLOBALS[self::$callTable[$name]][$var]) : null;
+            return  $callT ? $isset : $var;
         
-        $var = isset(self::$callTable[$name]) ? (isset($GLOBALS[self::$callTable[$name]][$var]) ? $GLOBALS[self::$callTable[$name]][$var] : false) : $var;
+        $var = $callT ? ($isset ? $GLOBALS[self::$callTable[$name]][$var] : false) : $var;
         
         list($f,$filter,$stdOptions)  = isset(self::$calls[$func]) ? self::$calls[$func] : self::$error;
         
