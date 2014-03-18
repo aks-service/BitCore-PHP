@@ -477,7 +477,7 @@ function pq($arg1, $context = null) {
             $squenz = $whitespace === false ? $arg1 : substr($arg1,0,$whitespace);
             $attr = $whitespace === false ? '' : substr($arg1,$whitespace+1);
             
-            $token = $phpQuery->document->createElement($squenz);
+            $token = $phpQuery->document->createElement(str_replace('/','',$squenz));
             if($attr != '')
                 preg_replace_callback('/([^\\s].*?)=[\'"](.*?)[\'"]/i', function (&$matches) use(&$token){
                     list(,$name,$value) = $matches;

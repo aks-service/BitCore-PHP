@@ -1938,7 +1938,6 @@ class phpQueryObject
 			foreach($loop as $a) {
 				$oldValue = $node->getAttribute($a);
 				$node->removeAttribute($a);
-				$this->attrEvents($a, $oldValue, null, $node);
 			}
 		}
 		return $this;
