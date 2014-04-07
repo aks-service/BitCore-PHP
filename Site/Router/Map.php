@@ -51,15 +51,6 @@ class Map implements IDebuggable {
      * @var RouteFactory
      * 
      */
-    protected static $route_factory = array('RouteFactory', 'newInstance');
-
-    /**
-     * 
-     * A RouteFactory for creating route objects.
-     * 
-     * @var RouteFactory
-     * 
-     */
     protected static $definition_factory = array('DefinitionFactory', 'newInstance');
 
     /**
@@ -97,6 +88,29 @@ class Map implements IDebuggable {
         self::$_debug = $bool;
     }
 
+    /**
+     * 
+     * An array of default parameters for Route objects.
+     * 
+     * @var array
+     * 
+     */
+    protected static $params = array(
+        'name'        => null,
+        'namespace'   => null,
+        'path'        => null,
+        'params'      => null,
+        'values'      => null,
+        'method'      => null,
+        'secure'      => false,
+        'routable'    => true,
+        'is_match'    => null,
+        'match_force' => null,
+        'generate'    => null,
+        'name_prefix' => null,
+        'path_prefix' => null,
+    );
+    
     /**
      * 
      * Adds a single route definition to the stack.
@@ -283,18 +297,11 @@ class Map implements IDebuggable {
      * 
      */
     protected static function createNextRoute() {
-        // do we have attached routes left to process?
-        if (self::$attach_routes) {
-            // yes, get the next attached definition
-            $spec = self::getNextAttach();
-        } else {
-            // no, get the next unattached definition
-            $spec = self::getNextDefinition();
-        }
+        // yes, get the next attached definition
+        $spec = (self::$attach_routes) ? self::getNextAttach() : self::getNextDefinition();
 
-        // create a route object from it
-        $factory = self::$route_factory;
-        $route = $factory($spec);
+        $params = Matrix::MergeRecursiveDistinct(self::$params, $spec);        
+        $route = new Route($params);
 
         // retain the route object ...
         $name = $route->name;

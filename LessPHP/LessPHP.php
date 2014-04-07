@@ -27,10 +27,13 @@ class LessPHP {
     const INIT = 0;
     const RENDER = 1;
     const FINISH = 2;
-
+    
+    static  $cacheit = true;
+    
     private $_parent = null;
     private $_handler = null;
     public $tags;
+    
 
     function __construct(&$parent, $docblock, $run = true) {
         if ($parent instanceof BLessPHP) {
@@ -52,8 +55,8 @@ class LessPHP {
     function run($state = self::INIT) {
         if (isset($this->tags[$state])) {
             foreach ($this->tags[$state] as $value) {
-                $tag = $value->tag;
-                $args = $value->args;
+                $tag = $value['tag'];
+                $args = $value['args'];
                 if (isset($this->_taghandler[$state][$tag])) {
                     $_func = $this->_taghandler[$state][$tag];
                     $this->_parent->$_func($args);
@@ -150,7 +153,21 @@ class LessPHP {
      *
      * @return void
      */
+    private static $cache;
+    
     protected function parseTags($tags) {
+        $sh = sha1($tags);
+        
+        if(!isset(self::$cache[$sh])){
+            if(self::$cacheit == true)
+                self::$cache[$sh] = SCache::getCache($sh);
+        }
+        
+        if(isset(self::$cache[$sh]) && self::$cache[$sh]){
+            $this->tags = self::$cache[$sh];
+            return;
+        }
+        
         $_result = array();
         $result = array();
         $tags = trim($tags);
@@ -184,17 +201,20 @@ class LessPHP {
                 $tag = strtolower($tag);
                 $t = array('line' => $tag_line, 'tag' => $tag, 'args' => $args);
                 if (isset($this->_taghandler[self::INIT][$tag]))
-                    $result[self::INIT][$key] = (object) ($t);
+                    $result[self::INIT][$key] =  ($t);
                 else if (isset($this->_taghandler[self::RENDER][$tag]))
-                    $result[self::RENDER][$key] = (object) ($t);
+                    $result[self::RENDER][$key] =  ($t);
                 else if (isset($this->_taghandler[self::FINISH][$tag]))
-                    $result[self::FINISH][$key] = (object) ($t);
+                    $result[self::FINISH][$key] = ($t);
                 else
                     unset($result[$key]);
             }
         }
-
-        $this->tags = $result;
+        
+        if(self::$cacheit == true)
+            SCache::setCache($sh,$result);
+        
+        $this->tags = self::$cache[$sh] = $result;
     }
 
     private static $_varhelper = array('false' => false, 'true' => true, 'null' => null);
@@ -202,16 +222,16 @@ class LessPHP {
     static function GetArrayVar($command) {
         if (is_array($command))
             return $command;
-
+                
         $array = array();
         $ret = array();
-
+        
         $reg = ':\[(.*?)\]:sx';
         $test = preg_match_all($reg, $command, $array, PREG_SET_ORDER);
 
-        if (!$test)
+        if (!$test || strpos($array[0][1], ":") === false)
             return $command;
-
+        
         $t = explode("|", $array[0][1]);
         foreach ($t as $value) {
             if (!$value)

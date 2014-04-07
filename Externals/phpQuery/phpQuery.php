@@ -77,36 +77,30 @@ abstract class phpQuery {
         $domId = (is_null($context)) ? (is_object($arg1) && !($arg1 instanceof phpQueryObject) ? self::getDocumentID($arg1): self::$defaultDocumentID) : self::getDocumentID($context) ;
         
         $phpQuery = new phpQueryObject($domId);
-        $phpQuery->elements = array();
         
         if ($arg1 instanceof phpQueryObject) {
             if ($arg1->getDocumentID() == $domId)
                 return $arg1;
             
+            $phpQuery->elements = array();
             foreach ($arg1->elements as $node)
                 $phpQuery->elements[] = $phpQuery->document->importNode($node, true);
             return $phpQuery;
         } else if ($arg1 instanceof DOMNODE || (is_array($arg1) && isset($arg1[0]) && $arg1[0] instanceof DOMNODE)) {
             if (!($arg1 instanceof DOMNODELIST) && !is_array($arg1))
                 $arg1 = array($arg1);
+            
+            $phpQuery->elements = array();
             foreach ($arg1 as $node) {
                 $sameDocument = $node->ownerDocument instanceof DOMDOCUMENT && !$node->ownerDocument->isSameNode($phpQuery->document);
                 $phpQuery->elements[] = $sameDocument ? $phpQuery->document->importNode($node, true) : $node;
             }
             return $phpQuery;
         } else if (self::isMarkup($arg1)) {
-            /**
-             * Import HTML:
-             * pq('<div/>')
-             */
             return $phpQuery->newInstance(
                             $phpQuery->documentWrapper->import($arg1)
             );
         } else {
-            /**
-             * Run CSS query:
-             * pq('div.myClass')
-             */
             if ($context){
                 if($context instanceof phpQueryObject){
                     $phpQuery->elements = $context->elements;

@@ -185,7 +185,7 @@ class BitBase {
      * @return string the version of Bit framework
      */
     public static function getVersion() {
-        return '0.1.0';
+        return '0.1.2';
     }
 
     /**
@@ -418,7 +418,7 @@ class BitBase {
         $path = implode(DS, $segs);
         $root = rtrim($alias . DS . $path, '/\\');
 
-        return pathinfo($root . (($base === '*') ? '' : DS . $base . "." . $ext));
+        return pathinfo($root . (('*' === $base) ? '' : DS . $base . "." . $ext));
     }
     
 

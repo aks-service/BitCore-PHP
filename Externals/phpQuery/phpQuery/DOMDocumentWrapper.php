@@ -50,7 +50,7 @@ class DOMDocumentWrapper {
 			$this->load($markup, $contentType, $newDocumentID);
 		$this->id = $newDocumentID
 			? $newDocumentID
-			: md5(microtime());
+			: sha1(microtime());
 	}
 	public function load($markup, $contentType = null, $newDocumentID = null) {
                 $this->contentType = strtolower($contentType);

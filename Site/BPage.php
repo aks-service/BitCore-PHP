@@ -64,7 +64,7 @@ abstract class BPage extends Component implements IPage {
      * @return void
      */
     public function setTitle($title) {
-        pq('title', $this->_page)->html($title);
+        $this->getContent('title')->html($title);
     }
 
     /**
@@ -74,7 +74,7 @@ abstract class BPage extends Component implements IPage {
      * @return void
      */
     public function addTitle($title, $key = ' » ',$func = 'append') {
-        pq('title', $this->_page)->$func($func === 'append' ? $key . $title : $title.$key );
+        $this->getContent('title')->$func($func === 'append' ? $key . $title : $title.$key );
     }
 
     /**
@@ -83,7 +83,7 @@ abstract class BPage extends Component implements IPage {
      * @return phpQueryObject(HEAD)
      */
     public function Head() {
-        return pq('head', $this->_page);
+        return $this->getContent('head');
     }
 
     /**

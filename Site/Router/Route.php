@@ -78,8 +78,6 @@ class Route extends ArrayObject {
         if ($this['path_prefix'] && strpos($this['path'], '://') === false)
             $this['path'] = str_replace('//', '/', $this['path_prefix'] . $this['path']);
 
-        // convert path and params to a regular expression
-        $this->setRegex();
     }
 
     /**
@@ -127,7 +125,9 @@ class Route extends ArrayObject {
                 $this->debug[] = 'Not routable.';
             return false;
         }
-
+        // convert path and params to a regular expression
+        $this->setRegex();
+        
         $is_match = $this->isRegexMatch($path);
         $_is_match = $this->isMethodMatch($server) && $this->isSecureMatch($server) && $this->isCustomMatch($server);
         
@@ -191,7 +191,7 @@ class Route extends ArrayObject {
         foreach ($data as $key => $val) {
             // Closures can't be cast to string
             if (!($val instanceof Closure) && !is_array($val)) {
-                $replace["{:$key}"] = rawurlencode($val);
+                $replace["{:$key}"] = $val;
             }
         }
         return strtr($this['path'], $replace);
@@ -368,4 +368,26 @@ class Route extends ArrayObject {
         return $result;
     }
 
+    /**
+     * 
+     * An array of default parameters for Route objects.
+     * 
+     * @var array
+     * 
+     */
+    protected static $params = array(
+        'name'        => null,
+        'namespace'   => null,
+        'path'        => null,
+        'params'      => null,
+        'values'      => null,
+        'method'      => null,
+        'secure'      => false,
+        'routable'    => true,
+        'is_match'    => null,
+        'match_force' => null,
+        'generate'    => null,
+        'name_prefix' => null,
+        'path_prefix' => null,
+    );    
 }

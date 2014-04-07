@@ -299,7 +299,7 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
         if (!is_file($file = $dir['dirname'] . DS . $lang . DS . $dir['basename']))
             $file = $dir['dirname'] . DS . $dir['basename'];
 
-        return isset($file) ? pq(phpQuery::newDocumentFile($file)) : NULL;
+        return isset($file) ? phpQuery::newDocumentFile($file) : NULL;
     }
 
     /**

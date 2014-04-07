@@ -18,6 +18,8 @@ class phpQueryObject
 	 */
 	public $document = null;
 	public $charset = null;
+        
+        static $cacheit = true; 
 	/**
 	 *
 	 * @var DOMDocumentWrapper
@@ -106,11 +108,154 @@ class phpQueryObject
 			// FIXME doesnt work at all ?
 			case 'length':
 				return $this->size();
+                            break;
+                        case 'tag':
+                            if(isset($this->elements[0]) && !isset($this->elements[1]))
+                                return $this->elements[0]->tagName;
 			break;
 			default:
+                            if(isset($this->elements[0]) && !isset($this->elements[1]))
+                                return $this->elements[0]->getAttribute($attr);
+                            else
 				return $this->$attr;
 		}
 	}
+        /**
+	 *
+	 * @access private
+	 * @param $attr
+	 * @return unknown_type
+	 */
+	public function __set($attr,$value) {
+		switch($attr) {
+			// FIXME doesnt work at all ?
+			case 'length':
+                        case 'tag':
+                            break;
+			default:
+                            if(isset($this->elements[0]) && !isset($this->elements[1]))
+                                $this->elements[0]->setAttribute($attr,$value);
+		}
+                return $this;
+	}
+        /**
+	 *
+	 * @access private
+	 * @param $method
+	 * @param $args
+	 * @return unknown_type
+	 */
+	public function __call($method, $args) {
+                $aliasMethods= array('empty'=>array($this, '_'.$method));
+                if('clone' == $method)
+                {
+                    $new = new phpQueryObject($this->documentID);
+                    $new->previous = $this;
+                    $new->elements = array();
+                    foreach($this->elements as $node) {
+                            $new->elements[] = $node->cloneNode(true);
+                    }
+
+                    return $new;
+                }
+                elseif(isset($aliasMethods[$method]))
+                {
+                    return $aliasMethods[$method]();
+                } else
+			throw new Exception("Method '{$method}' doesnt exist");
+	}
+        // INTERFACE IMPLEMENTATIONS
+
+	// ITERATOR INTERFACE
+	/**
+   * @access private
+	 */
+	public function rewind(){
+//		phpQuery::selectDocument($this->getDocumentID());
+		$this->elementsBackup = $this->elements;
+		$this->elementsInterator = $this->elements;
+		$this->valid = isset( $this->elements[0] )
+			? 1 : 0;
+// 		$this->elements = $this->valid
+// 			? array($this->elements[0])
+// 			: array();
+		$this->current = 0;
+	}
+	/**
+   * @access private
+	 */
+	public function current(){
+                $new = new phpQueryObject($this->documentID);
+                $new->elements = array();
+                $new->elements[] = $this->elementsInterator[ $this->current ];
+		return $new;
+	}
+	/**
+   * @access private
+	 */
+	public function key(){
+		return $this->current;
+	}
+	/**
+	 * Double-function method.
+	 *
+	 * First: main iterator interface method.
+	 * Second: Returning next sibling, alias for _next().
+	 *
+	 * Proper functionality is choosed automagicaly.
+	 *
+	 * @see phpQueryObject::_next()
+	 * @return phpQueryObject|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery
+	 */
+	public function next($cssSelector = null){
+//		if ($cssSelector || $this->valid)
+//			return $this->_next($cssSelector);
+		$this->valid = isset( $this->elementsInterator[ $this->current+1 ] )
+			? true
+			: false;
+		if (! $this->valid && $this->elementsInterator) {
+			$this->elementsInterator = null;
+		} else if ($this->valid) {
+			$this->current++;
+		} else {
+			return $this->_next($cssSelector);
+		}
+	}
+	/**
+   * @access private
+	 */
+	public function valid(){
+		return $this->valid;
+	}
+	// ITERATOR INTERFACE END
+	// ARRAYACCESS INTERFACE
+	/**
+   * @access private
+	 */
+	public function offsetExists($offset) {
+		return $this->find($offset)->size() > 0;
+	}
+	/**
+   * @access private
+	 */
+	public function offsetGet($offset) {
+		return $this->find($offset);
+	}
+	/**
+   * @access private
+	 */
+	public function offsetSet($offset, $value) {
+//		$this->find($offset)->replaceWith($value);
+		$this->find($offset)->html($value);
+	}
+	/**
+   * @access private
+	 */
+	public function offsetUnset($offset) {
+		// empty
+		throw new Exception("Can't do unset, use array interface only for calling queries and replacing HTML.");
+	}
+        
 	/**
 	 * Saves actual object to $var by reference.
 	 * Useful when need to break chain.
@@ -126,22 +271,6 @@ class phpQueryObject
 			return $this;
 		}
 		return $this->documentFragment;
-	}
-	/**
-   * @access private
-   * @TODO documentWrapper
-	 */
-	protected function isRoot( $node) {
-//		return $node instanceof DOMDOCUMENT || $node->tagName == 'html';
-		return $node instanceof DOMDOCUMENT
-			|| ($node instanceof DOMELEMENT && $node->tagName == 'html')
-			|| $this->root->isSameNode($node);
-	}
-	/**
-   * @access private
-	 */
-	protected function stackIsRoot() {
-		return $this->size() == 1 && $this->isRoot($this->elements[0]);
 	}
 	/**
 	 * Enter description here...
@@ -204,7 +333,7 @@ class phpQueryObject
 	 * @return phpQueryObject|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery
 	 */
 	public function unloadDocument() {
-		phpQuery::unloadDocuments($this->getDocumentID());
+		phpQuery::unloadDocuments($this->documentID);
 	}
 	public function isHTML() {
 		return $this->documentWrapper->isHTML;
@@ -215,19 +344,7 @@ class phpQueryObject
 	public function isXML() {
 		return $this->documentWrapper->isXML;
 	}
-	
-	/**
-	 * @access private
-	 */
-	protected function debug($in) {
-		if (! phpQuery::$debug )
-			return;
-		print('<pre>');
-                
-		print_r($in);
-                
-		print("</pre>\n");
-	}
+        
 	/**
 	 * @access private
 	 */
@@ -282,15 +399,15 @@ class phpQueryObject
 		$class = get_class($this);
 		// support inheritance by passing old object to overloaded constructor
 		$new = $class != 'phpQuery'
-			? new $class($this, $this->getDocumentID())
-			: new phpQueryObject($this->getDocumentID());
+			? new $class($this, $this->documentID)
+			: new phpQueryObject($this->documentID);
 		$new->previous = $this;
 		if (is_null($newStack)) {
 			$new->elements = $this->elements;
 			if ($this->elementsBackup)
 				$this->elements = $this->elementsBackup;
 		} else if (is_string($newStack)) {
-			$new->elements = phpQuery::pq($newStack, $this->getDocumentID())->stack();
+			$new->elements = phpQuery::pq($newStack, $this->documentID)->stack();
 		} else {
 			$new->elements = $newStack;
 		}
@@ -394,9 +511,17 @@ class phpQueryObject
         protected static $selectorCache = [];
         
         protected function parseSelector(&$selector){
-            if(!isset(self::$selectorCache[$selector]))
-                self::$selectorCache[$selector] = self::parse($selector);
-            
+            if(!isset(self::$selectorCache[$selector])){
+                if(self::$cacheit == true)
+                    self::$selectorCache[$selector] = SCache::getCache(sha1($selector));
+                
+                if(is_null(self::$selectorCache[$selector])){
+                    self::$selectorCache[$selector] = self::parse($selector);
+                
+                    if(self::$cacheit == true)
+                        SCache::setCache(sha1($selector),self::$selectorCache[$selector]);
+                }
+            }
             return self::$selectorCache[$selector];
         } 
         
@@ -564,9 +689,12 @@ class phpQueryObject
                             //if (!$this->elementsContainsNode($node, $stack)) Renew Logik hmm
                                 $stack[] = $node;
 		}
-                
-		$this->elements = $stack;
-		return $this->newInstance();
+                $new = new phpQueryObject($this->documentID);
+                $new->previous = $this;
+                $new->elements = $stack;
+                if ($this->elementsBackup)
+                        $this->elements = $this->elementsBackup;
+		return $new;
 	}
         
 	/**
@@ -852,7 +980,7 @@ class phpQueryObject
 		if (! $_skipHistory)
 			$this->elementsBackup = $this->elements;
 		$notSimpleSelector = array(' ', '>', '~', '+', '/');
-		if (! is_array($selectors))
+		if (!is_array($selectors))
 			$selectors = $this->parseSelector($selectors);
                 
 		$finalStack = array();
@@ -964,6 +1092,7 @@ class phpQueryObject
 			return $this->newInstance();
 		}
 	}
+        
 	/**
 	 *
 	 * @param $value
@@ -974,33 +1103,6 @@ class phpQueryObject
 		return $value[0] == '\'' || $value[0] == '"'
 			? substr($value, 1, -1)
 			: $value;
-	}
-	
-	/**
-	 * Enter description here...
-	 *
-	 * @return phpQuery|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery
-	 * @todo
-	 */
-	public function css() {
-		// TODO
-		return $this;
-	}
-	/**
-	 * @todo
-	 *
-	 */
-	public function show(){
-		// TODO
-		return $this;
-	}
-	/**
-	 * @todo
-	 *
-	 */
-	public function hide(){
-		// TODO
-		return $this;
 	}
 	
 	/**
@@ -1191,16 +1293,14 @@ class phpQueryObject
 	 * @access private
 	 */
 	public function _clone() {
-		$newStack = array();
-		//pr(array('copy... ', $this->whois()));
-		//$this->dumpHistory('copy');
-		$this->elementsBackup = $this->elements;
+                $new = new phpQueryObject($this->documentID);
+                $new->previous = $this;
+                $new->elements = array();
 		foreach($this->elements as $node) {
-			$newStack[] = $node->cloneNode(true);
+			$new->elements[] = $node->cloneNode(true);
 		}
-		$this->elements = $newStack;
                 
-		return $this->newInstance();
+		return $new;
 	}
 	/**
 	 * Enter description here...
@@ -1345,6 +1445,23 @@ class phpQueryObject
 		$this->elements = $stack;
 		return $this->newInstance();
 	}
+        
+	/**
+            * @access private
+            * @TODO documentWrapper
+	 */
+	protected function isRoot( $node) {
+		return $node instanceof DOMDOCUMENT
+			|| ($node instanceof DOMELEMENT && $node->tagName == 'html')
+			|| $this->root->isSameNode($node);
+	}
+	/**
+          * @access private
+	 */
+	protected function stackIsRoot() {
+		return !isset($this->elements[1]) && $this->isRoot($this->elements[0]);
+	}
+        
 	/**
 	 * Enter description here...
 	 *
@@ -1361,7 +1478,35 @@ class phpQueryObject
 	public function append( $content) {
 		return $this->insert($content, __FUNCTION__);
 	}
+	
 	/**
+	 * Enter description here...
+	 *
+	 * @return phpQueryObject|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery
+	 */
+	public function prepend( $content) {
+		return $this->insert($content, __FUNCTION__);
+	}
+        
+	/**
+	 * Enter description here...
+	 *
+	 * @return phpQueryObject|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery
+	 */
+	public function before($content) {
+		return $this->insert($content, __FUNCTION__);
+	}
+	
+	/**
+	 * Enter description here...
+	 *
+	 * @return phpQueryObject|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery
+	 */
+	public function after( $content) {
+		return $this->insert($content, __FUNCTION__);
+	}
+        
+        /**
 	 * Enter description here...
 	 *
 	 * @return phpQueryObject|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery
@@ -1374,26 +1519,10 @@ class phpQueryObject
 	 *
 	 * @return phpQueryObject|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery
 	 */
-	public function prepend( $content) {
-		return $this->insert($content, __FUNCTION__);
-	}
-	/**
-	 * Enter description here...
-	 *
-	 * @return phpQueryObject|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery
-	 */
 	public function prependTo( $seletor) {
 		return $this->insert($seletor, __FUNCTION__);
 	}
-	/**
-	 * Enter description here...
-	 *
-	 * @return phpQueryObject|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery
-	 */
-	public function before($content) {
-		return $this->insert($content, __FUNCTION__);
-	}
-	/**
+        /**
 	 * Enter description here...
 	 *
 	 * @param String|phpQuery
@@ -1402,14 +1531,7 @@ class phpQueryObject
 	public function insertBefore( $seletor) {
 		return $this->insert($seletor, __FUNCTION__);
 	}
-	/**
-	 * Enter description here...
-	 *
-	 * @return phpQueryObject|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery
-	 */
-	public function after( $content) {
-		return $this->insert($content, __FUNCTION__);
-	}
+        
 	/**
 	 * Enter description here...
 	 *
@@ -1427,7 +1549,7 @@ class phpQueryObject
 	 * @access private
 	 */
 	public function insert($target, $type) {
-		
+		$insertFrom = $insertTo = array();
 		$to = false;
 		switch( $type) {
 			case 'appendTo':
@@ -1438,7 +1560,6 @@ class phpQueryObject
 		}
 		switch(gettype($target)) {
 			case 'string':
-				$insertFrom = $insertTo = array();
 				if ($to) {
 					// INSERT TO
 					$insertFrom = $this->elements;
@@ -1461,16 +1582,11 @@ class phpQueryObject
 				}
 				break;
 			case 'object':
-				$insertFrom = $insertTo = array();
 				// phpQuery
 				if ($target instanceof self) {
 					if ($to) {
 						$insertTo = $target->elements;
 						if ($this->documentFragment && $this->stackIsRoot())
-							// get all body children
-//							$loop = $this->find('body > *')->elements;
-							// TODO test it, test it hard...
-//							$loop = $this->newInstance($this->root)->find('> *')->elements;
 							$loop = $this->root->childNodes;
 						else
 							$loop = $this->elements;
@@ -1481,8 +1597,6 @@ class phpQueryObject
 					} else {
 						$insertTo = $this->elements;
 						if ( $target->documentFragment && $target->stackIsRoot() )
-							// get all body children
-//							$loop = $target->find('body > *')->elements;
 							$loop = $target->root->childNodes;
 						else
 							$loop = $target->elements;
@@ -1493,9 +1607,6 @@ class phpQueryObject
 					}
 				// DOMNODE
 				} elseif ($target instanceof DOMNODE) {
-					// import node if needed
-//					if ( $target->ownerDocument != $this->DOM )
-//						$target = $this->DOM->importNode($target, true);
 					if ( $to) {
 						$insertTo = array($target);
 						if ($this->documentFragment && $this->stackIsRoot())
@@ -1640,22 +1751,7 @@ class phpQueryObject
 		return $return;
 	}
 	
-	/**
-	 *
-	 * @access private
-	 * @param $method
-	 * @param $args
-	 * @return unknown_type
-	 */
-	public function __call($method, $args) {
-                $aliasMethods= array('clone'=>array($this, '_'.$method), 'empty'=>array($this, '_'.$method));
-                
-                if(isset($aliasMethods[$method]))
-                {
-                    return $aliasMethods[$method]();
-                } else
-			throw new Exception("Method '{$method}' doesnt exist");
-	}
+	
 	/**
 	 * Safe rename of next().
 	 *
@@ -1889,32 +1985,48 @@ class phpQueryObject
         
 	static protected $_attrF = array('*'=>'');       
 	public function attr($attr = null, $value = null) {
-                $d = (isset($this->elements[1])) ? $this->stack("1") : $this->elements;
+                if(!isset($this->elements[0]))
+                    return $this;
+                
                 $vNull = is_null($value);
-                
-                $Attrset = isset(self::$_attrF[$attr]);
-                
-		foreach($d as $node) {
-			if (!$vNull && !$Attrset) {
-                                $node->setAttribute($attr, $value);
-                                
-			} else if ($Attrset) {
-                            if($vNull){ 
-				// jQuery difference
-				$return = array();
-				foreach($node->attributes as $n => $v)
-					$return[$n] = $v->value;
-				return $return;
-                            }
-                            else{
-				foreach($this->getNodeAttrs($node) as $a) 
-					@$node->setAttribute($a, $value);
-                            }
-			} else
-				return $node->getAttribute($attr);
-		}
-		return $vNull
-			? '' : $this;
+                $isArray = is_array($attr);
+                $Attrset = !$isArray && isset(self::$_attrF[$attr]);
+                $return = array();
+                $size = isset($this->elements[1]);
+                   
+                if(!$size)
+                    if(!$isArray && $vNull)
+                    {
+                        if ($Attrset) {
+                            foreach(($this->elements[0]->attributes) as $n => $v)
+                                $return[$n] = $v->value;
+                            return (object)$return;
+                        } else
+                            return $this->elements[0]->getAttribute($attr);
+                    }
+                    else{
+                        if($isArray){
+                            foreach($attr as $k=>$v)
+                                @$this->elements[0]->setAttribute($k, $v);
+                        }else if($Attrset)
+                            foreach(($this->getNodeAttrs($node)) as $a) 
+                                @$this->elements[0]->setAttribute($a, $value);
+                        else
+                                @$this->elements[0]->setAttribute($attr, $value);
+                        return $this;
+                    }  
+                    
+                $d = ($size) ? $this->stack("1") : $this->elements;
+                foreach($d as $node)
+                    if($isArray)
+                        foreach($attr as $k=>$v)
+                            @$node->setAttribute($k, $v);
+                    else if($Attrset)
+                        foreach(($this->getNodeAttrs($node)) as $a) 
+                            @$node->setAttribute($a, $value);
+                    else
+                            @$node->setAttribute($attr, $value);
+		return $this;
 	}
 	/**
 	 * @access private
@@ -1959,7 +2071,7 @@ class phpQueryObject
 	 * @return phpQueryObject|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery
 	 */
 	public function addClass( $className) {
-		if (! $className)
+		if (!isset($this->elements[0]) || !$className)
 			return $this;
                 
 		$d = isset($this->elements[1]) ? $this->stack("1") : $this->elements;
@@ -2094,9 +2206,11 @@ class phpQueryObject
 	 */
 	public function data($key, $value = null) {
                 if(is_array($key)){
+                    $res = array();
                     foreach($key as $k=>$v)
-                        $this->attr('data-'.$k, $v);               
-                    return $this;
+                        $res['data-'.$k] = $v; 
+                    
+                    return $this->attr($res);
                 }
 		elseif (! isset($value)) {
                     return $this->attr('data-'.$key);
@@ -2115,94 +2229,7 @@ class phpQueryObject
 			phpQuery::removeData($node, $key, $this->getDocumentID());
 		return $this;
 	}
-	// INTERFACE IMPLEMENTATIONS
-
-	// ITERATOR INTERFACE
-	/**
-   * @access private
-	 */
-	public function rewind(){
-//		phpQuery::selectDocument($this->getDocumentID());
-		$this->elementsBackup = $this->elements;
-		$this->elementsInterator = $this->elements;
-		$this->valid = isset( $this->elements[0] )
-			? 1 : 0;
-// 		$this->elements = $this->valid
-// 			? array($this->elements[0])
-// 			: array();
-		$this->current = 0;
-	}
-	/**
-   * @access private
-	 */
-	public function current(){
-		return phpQuery::pq($this->elementsInterator[ $this->current ],$this->getDocumentID());
-	}
-	/**
-   * @access private
-	 */
-	public function key(){
-		return $this->current;
-	}
-	/**
-	 * Double-function method.
-	 *
-	 * First: main iterator interface method.
-	 * Second: Returning next sibling, alias for _next().
-	 *
-	 * Proper functionality is choosed automagicaly.
-	 *
-	 * @see phpQueryObject::_next()
-	 * @return phpQueryObject|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery
-	 */
-	public function next($cssSelector = null){
-//		if ($cssSelector || $this->valid)
-//			return $this->_next($cssSelector);
-		$this->valid = isset( $this->elementsInterator[ $this->current+1 ] )
-			? true
-			: false;
-		if (! $this->valid && $this->elementsInterator) {
-			$this->elementsInterator = null;
-		} else if ($this->valid) {
-			$this->current++;
-		} else {
-			return $this->_next($cssSelector);
-		}
-	}
-	/**
-   * @access private
-	 */
-	public function valid(){
-		return $this->valid;
-	}
-	// ITERATOR INTERFACE END
-	// ARRAYACCESS INTERFACE
-	/**
-   * @access private
-	 */
-	public function offsetExists($offset) {
-		return $this->find($offset)->size() > 0;
-	}
-	/**
-   * @access private
-	 */
-	public function offsetGet($offset) {
-		return $this->find($offset);
-	}
-	/**
-   * @access private
-	 */
-	public function offsetSet($offset, $value) {
-//		$this->find($offset)->replaceWith($value);
-		$this->find($offset)->html($value);
-	}
-	/**
-   * @access private
-	 */
-	public function offsetUnset($offset) {
-		// empty
-		throw new Exception("Can't do unset, use array interface only for calling queries and replacing HTML.");
-	}
+	
 	// HELPERS
 	public function whois($oneNode = null) {
 		$return = array();
@@ -2221,10 +2248,6 @@ class phpQueryObject
 						? '.'.join('.', explode(' ', $node->getAttribute('class'))):'')
 					.($node->getAttribute('name')
 						? '[name="'.$node->getAttribute('name').'"]':'')
-					.($node->getAttribute('value') && strpos($node->getAttribute('value'), '<'.'?php') === false
-						? '[value="'.substr(str_replace("\n", '', $node->getAttribute('value')), 0, 15).'"]':'')
-					.($node->getAttribute('value') && strpos($node->getAttribute('value'), '<'.'?php') !== false
-						? '[value=PHP]':'')
 					.($node->getAttribute('selected')
 						? '[selected]':'')
 					.($node->getAttribute('checked')
@@ -2241,38 +2264,7 @@ class phpQueryObject
 			? $return[0]
 			: $return;
 	}
-	/**
-	 * Dump htmlOuter and preserve chain. Usefull for debugging.
-	 *
-	 * @return phpQueryObject|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery
-	 *
-	 */
-	public function dump() {
-		print 'DUMP #'.(phpQuery::$dumpCount++).' ';
-		$debug = phpQuery::$debug;
-		phpQuery::$debug = false;
-//		print __FILE__.':'.__LINE__."\n";
-		var_dump($this->htmlOuter());
-		return $this;
-	}
-	public function dumpWhois() {
-		print 'DUMP #'.(phpQuery::$dumpCount++).' ';
-		$debug = phpQuery::$debug;
-		phpQuery::$debug = false;
-//		print __FILE__.':'.__LINE__."\n";
-		var_dump('whois', $this->whois());
-		phpQuery::$debug = $debug;
-		return $this;
-	}
-	public function dumpLength() {
-		print 'DUMP #'.(phpQuery::$dumpCount++).' ';
-		$debug = phpQuery::$debug;
-		phpQuery::$debug = false;
-//		print __FILE__.':'.__LINE__."\n";
-		var_dump('length', $this->length());
-		phpQuery::$debug = $debug;
-		return $this;
-	}
+	
 	public function dumpTree($html = true, $title = true) {
 		$output = $title
 			? 'DUMP #'.(phpQuery::$dumpCount++)." \n" : '';
@@ -2295,15 +2287,6 @@ class phpQueryObject
 			foreach($node->childNodes as $chNode)
 				$return .= $this->__dumpTree($chNode, $intend+1);
 		return $return;
-	}
-	/**
-	 * Dump htmlOuter and stop script execution. Usefull for debugging.
-	 *
-	 */
-	public function dumpDie() {
-		print __FILE__.':'.__LINE__;
-		var_dump($this->htmlOuter());
-		die();
 	}
         
         // These are constants describing the content model
