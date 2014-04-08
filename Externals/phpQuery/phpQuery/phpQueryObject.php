@@ -117,7 +117,7 @@ class phpQueryObject
                             if(isset($this->elements[0]) && !isset($this->elements[1]))
                                 return $this->elements[0]->getAttribute($attr);
                             else
-				return $this->$attr;
+				return isset($this->$attr) ? $this->$attr : null;
 		}
 	}
         /**
