@@ -217,6 +217,35 @@ class LessPHP {
         $this->tags = self::$cache[$sh] = $result;
     }
 
+    static function callFunc($func){
+        $prefix = '/\$([a-zA-Z]{1,12}?)\((.+)\)/msi';
+        //$prefix = '/\\$([0-9]*)?([a-z]?)([0-9]?)/msi';
+        $text = preg_replace_callback(
+                $prefix, array("LessPHP", '_func'), $func
+        );
+        return $text;
+    }
+    static function _func(&$matches) {
+        list($all,$option, $args) = $matches;
+        $args = explode(",",$args);
+        
+        switch ($option) {   
+            case 'call':
+                $func = Self::GetArrayVar(array_shift($args));
+                return call_user_func_array($func,$args);
+            case 'cond':
+                if(LessPHP::callFunc($args[0]) == 1){
+                        return trim($args[1]);						
+                }
+                else {
+                        return trim($args[2]);	
+                }
+            default:
+                var_dump($matches,$args);
+        }
+        return $matches[1];
+    }
+    
     private static $_varhelper = array('false' => false, 'true' => true, 'null' => null);
 
     static function GetArrayVar($command) {
@@ -229,16 +258,19 @@ class LessPHP {
         $reg = ':\[(.*?)\]:sx';
         $test = preg_match_all($reg, $command, $array, PREG_SET_ORDER);
 
-        if (!$test || strpos($array[0][1], ":") === false)
+        if (!$test || strpos($array[0][1], "|") === false)
             return $command;
         
         $t = explode("|", $array[0][1]);
         foreach ($t as $value) {
             if (!$value)
                 continue;
-
-            list($key, $v) = explode(":", trim($value));
-            $ret[$key] = isset(static::$_varhelper[strtolower($v)]) ? static::$_varhelper[strtolower($v)] : $v;
+            if (strpos($value, ":") === false)
+                 $ret[] = isset(static::$_varhelper[strtolower($value)]) ? static::$_varhelper[strtolower($value)] : $value;
+            else{
+                list($key, $v) = explode(":", trim($value));
+                $ret[$key] = isset(static::$_varhelper[strtolower($v)]) ? static::$_varhelper[strtolower($v)] : $v;
+            }
         }
         return $ret;
     }

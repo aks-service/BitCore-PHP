@@ -325,7 +325,8 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
      * @return Self
      */
     public function LoadTemplate($namespace) {
-        $h = explode(" ", $namespace, 3);
+        $h = explode(" ", LessPHP::callFunc($namespace), 3);
+        
         if (count($h) == 1)
             $h[] = $this->_append;
         if (count($h) == 2)
@@ -393,10 +394,12 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
 
         $_t = $this->_getComponent($ts);
         $init = isset($this->_vars[$ts]) ? $this->_vars[$ts] : array();
+        
         if (!isset($init['appendTo']))
             $init['appendTo'] = $this->getVar($append, true);
         if (!isset($init['appendFunc']))
             $init['appendFunc'] = $this->getVar($func, true);
+        
         $t = new $_t($this, $init);
         $t->Render();
     }

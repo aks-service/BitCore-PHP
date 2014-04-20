@@ -74,6 +74,7 @@ abstract class BPage extends Component implements IPage {
      * @return void
      */
     public function addTitle($title, $key = ' » ',$func = 'append') {
+        $title = LessPHP::callFunc($title);
         $this->getContent('title')->$func($func === 'append' ? $key . $title : $title.$key );
     }
 
