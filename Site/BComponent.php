@@ -19,7 +19,8 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
     CONST RENDER = 'View';
     CONST APPEND = '#content';
     CONST ATYPE  = 'append';
-	
+    const NEEDINIT = false;
+    
     protected $_root;
     public $_renderReturn;
     protected $_page;
@@ -43,7 +44,7 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
     protected $_preparedStatements = array();
 
     //XXX: isinrole? other LessPHP tags
-    protected $_starttaghandler = array('var' => 'setVar','template' => 'LoadTemplate', 'auto' => 'setAuto', 'return' => 'setReturn', 'header' => 'setHeader','prepare' => 'setPrepare');
+    protected $_starttaghandler = array('var' => 'setVar','global'=>'setGlobalVar','template' => 'LoadTemplate', 'auto' => 'setAuto', 'return' => 'setReturn', 'header' => 'setHeader','prepare' => 'setPrepare');
     protected $_rendertaghandler = array('module' => 'LoadModule');
     protected $_finishtaghandler = array('component' => 'LoadComponent');
 
@@ -122,7 +123,7 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
         if (strpos($key, ' ') !== FALSE) {
             list($key, $value) = explode(' ', $key, 2);
         }
-        $this->_vars[$key] = LessPHP::GetArrayVar($value);
+        $this->_vars[$key] = LessPHP::GetArrayVar(LessPHP::callFunc($value));
         return $this;
     }
 
@@ -130,6 +131,8 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
      * @return mixed
      */
     public function getVar($key, $ret = false) {
+        if(is_object($key))
+            return $ret ? $key : null;
         $key = strpos($key, '$') === 0 ? substr($key, 1) : $key;
         return isset($this->_vars[$key]) ? $this->_vars[$key] : ($ret ? $key : null);
     }
@@ -145,7 +148,7 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
         if (strpos($key, ' ') !== FALSE) {
             list($key, $value) = explode(' ', $key, 2);
         }
-        static::$_globalvars[$key] = LessPHP::GetArrayVar($value);
+        static::$_globalvars[$key] = LessPHP::GetArrayVar(LessPHP::callFunc($value));
         return $this;
     }
 
@@ -305,18 +308,17 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
     /**
      *  @return Self
      */
-    public function LoadComponent($namespace) {
-        $h = explode(" ", $namespace, 4);
+    public function LoadComponent($namespace,$append = null, $func = null , $key = null) {
+        $h = explode(" ", LessPHP::callFunc($namespace), 4);
+       
         if (count($h) == 1)
-            $h[] = $this->_append;
+            $h[] = $append ? $append : static::APPEND ;
         if (count($h) == 2)
-            $h[] = static::ATYPE;
-        
-        if (count($h) == 3) {
-            
-        }
-        list($namespaces, $append, $func) = $h;
-        $this->_components[$namespaces] = array('0' => $append, '1' => $func, '2' => $namespaces);
+            $h[] = $func;
+        if (count($h) == 3) 
+            $h[] = $key ? $key : Terms::getMicroTimeFloat();
+        list($namespaces, $append, $func,$key) = $h;
+        $this->_components[$namespaces.$key] = array('0' => $append, '1' => $func, '2' => "Components.".$namespaces);
     
         return $this;
     }
@@ -334,6 +336,15 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
         
         list($namespace, $append, $func) = $h;
         $t = $this->_getTemplate($namespace);
+        
+        
+        //Alpha functions , [data-component]
+        foreach ($t->find('[data-template]') as $node) {
+            $func = $node->__get('data-func');
+            $func = $func ? $func : "append";
+            $node->$func($this->_getTemplate($node->__get('data-template')));
+        }
+        
         if ($t) {
             $this->_templates[$namespace] = array('0' => $append, '1' => $func, '2' => $t);
         } else
@@ -365,6 +376,14 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
      */
     public function Finish() {
         if ($this->_auto && $this->_renderReturn) {
+            foreach ($this->_page->find('[data-component]') as $node) {
+                $func = $node->__get('data-func');
+                $func = $func ? $func : "append";
+                $key = $node->__get('data-key');
+                $key = $key ? $key : null;
+                $this->LoadComponent($node->__get('data-component'),$node, $func,$key);
+                $node->removeAttr('data-component');
+            }
             foreach ($this->_components as $key => $v)
                 $this->beforeComponent($key);
         }
@@ -372,6 +391,10 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
 
     protected function getContent($append = null){
         static $h;
+        
+        if($append instanceof phpQueryObject)
+            return $append;
+        
         $append = $append ? $append : static::APPEND;
         if(!isset($h[$append])) 
             $h[$append] = $this->_page->find($append);
@@ -393,8 +416,10 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
         list($append, $func, $ts) = $this->getComponent($key, false);
 
         $_t = $this->_getComponent($ts);
-        $init = isset($this->_vars[$ts]) ? $this->_vars[$ts] : array();
+        $init = isset($this->_vars[$key]) ? $this->_vars[$key] : array();
         
+        if($_t::NEEDINIT && !isset($this->_vars[$key]))
+            throw new ToDoException('Make Default ErrorHandler');
         if (!isset($init['appendTo']))
             $init['appendTo'] = $this->getVar($append, true);
         if (!isset($init['appendFunc']))

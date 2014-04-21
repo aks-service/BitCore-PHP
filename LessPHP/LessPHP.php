@@ -218,6 +218,8 @@ class LessPHP {
     }
 
     static function callFunc($func){
+        if(!is_string($func))
+            return $func;
         $prefix = '/\$([a-zA-Z]{1,12}?)\((.+)\)/msi';
         //$prefix = '/\\$([0-9]*)?([a-z]?)([0-9]?)/msi';
         $text = preg_replace_callback(

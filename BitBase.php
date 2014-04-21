@@ -185,7 +185,7 @@ class BitBase {
      * @return string the version of Bit framework
      */
     public static function getVersion() {
-        return '0.1.2';
+        return '0.1.9';
     }
 
     /**
