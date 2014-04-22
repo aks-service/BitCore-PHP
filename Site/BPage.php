@@ -33,8 +33,12 @@ abstract class BPage extends Component implements IPage {
 
         $p = &$this->_page;
         $r = &$this->_route;
-
-        $func = isset($r["values"]['view']) ? static::RENDER . $r["values"]['view'] : static::RENDER . 'Index';
+        
+        $render = (isset($_SERVER['HTTP_X_REQUESTED_WITH'])  && 
+                    !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+                    strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') ? "Ajax" : static::RENDER;
+        
+        $func = isset($r["values"]['view']) ? $render . $r["values"]['view'] : $render . 'Index';
         
         try {
             $viewport = new ReflectionMethod(get_class($this), $func);

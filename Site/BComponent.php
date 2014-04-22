@@ -357,7 +357,11 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
      * 
      */
     public function Render() {
-        $func = static::RENDER . 'Index';
+        $render = (isset($_SERVER['HTTP_X_REQUESTED_WITH'])  && 
+                    !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+                    strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') ? "Ajax" : static::RENDER;
+        
+        $func = $render . 'Index';
         $this->_less->run(LessPHP::RENDER);
         
         //Append Templates :D
