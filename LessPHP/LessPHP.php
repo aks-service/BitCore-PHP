@@ -233,7 +233,7 @@ class LessPHP {
         
         switch ($option) {   
             case 'call':
-                $func = Self::GetArrayVar(array_shift($args));
+                $func = LessPHP::GetArrayVar(array_shift($args));
                 return call_user_func_array($func,$args);
             case 'cond':
                 if(LessPHP::callFunc($args[0]) == 1){
