@@ -23,35 +23,36 @@ abstract class BPage extends Component implements IPage {
         $this->_t = $bo;
     }
 
-    public function Init() {
-        
-        $this->_starttaghandler = array_merge($this->_starttaghandler, array('wrapper' => 'setWrapper', 'wtemplate' => 'setWrapperTemplate'));
-        $this->_rendertaghandler = array_merge($this->_rendertaghandler, array('title' => 'addTitle'));
-        $this->_finishtaghandler = array_merge($this->_finishtaghandler, array('css' => 'addCss'));
-        
-        parent::Init();
-
-        $p = &$this->_page;
-        $r = &$this->_route;
-        
+    protected function CheckRoute(&$r,&$isFinal = true){
         $render = (isset($_SERVER['HTTP_X_REQUESTED_WITH'])  && 
                     !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
                     strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') ? "Ajax" : static::RENDER;
         
         $func = isset($r["values"]['view']) ? $render . $r["values"]['view'] : $render . 'Index';
-        
         try {
             $viewport = new ReflectionMethod(get_class($this), $func);
-        } catch (Exception $r) {
-            $viewport = null;
+        } catch (Exception $e) {
+            $isFinal = false;
+            $viewport = new ReflectionMethod(get_class($this), $render.'Error');
         }
-        if (is_object($viewport))
-            if ($viewport->isFinal() && $viewport->isProtected() && $viewport->getDocComment() !== false) {
+        $viewport->setAccessible(true);
+        return $viewport;
+    }
+    public function Init() {
+        $this->_starttaghandler = array_merge($this->_starttaghandler, array('wrapper' => 'setWrapper', 'wtemplate' => 'setWrapperTemplate'));
+        $this->_rendertaghandler = array_merge($this->_rendertaghandler, array('title' => 'addTitle'));
+        $this->_finishtaghandler = array_merge($this->_finishtaghandler, array('css' => 'addCss'));
+        
+        parent::Init();
+        
+        $isFinal = null;
+        $viewport = $this->CheckRoute($this->_route, $isFinal);
+        if ($viewport instanceof ReflectionMethod)
+            if ((($isFinal && $viewport->isFinal()) || !$isFinal) && $viewport->isProtected() && $viewport->getDocComment() !== false) {
                 $this->_lessmethod = new LessPHP($this, $viewport);
-                $this->_viewport = $func;
+                $this->_viewport = $viewport;
             } else {
                 throw new SecurityException('View Function');
-                $this->_viewport = null;
             }
     }
 
@@ -116,11 +117,15 @@ abstract class BPage extends Component implements IPage {
             $func = $this->_viewport;
             if ($this->_lessmethod instanceof LessPHP) {
                 $this->_lessmethod->run(LessPHP::RENDER);
-                if ($this->_type != 'void')
-                    $this->_renderReturn = $this->$func();
-                else
-                    $this->$func();
-
+                
+                try{
+                    if ($this->_type != 'void')
+                        $this->_renderReturn = $func->invoke($this);
+                    else
+                        $func->invoke($this);
+                }catch(Exception $e){
+                    $this->doException($e);
+                }
                 $this->_lessmethod->run(LessPHP::FINISH);
             }
             $this->_less->run(LessPHP::FINISH);
@@ -130,10 +135,13 @@ abstract class BPage extends Component implements IPage {
         }
     }
 
+    protected function AjaxError() {
+        throw new ToDoException("Make a AjaxError Handler. Maybe Check your route");
+    }
+
     
-    
-    function ViewError() {
-        throw new ToDoException("Make a ViewError or a ViewIndex Handler You Idiot. Maybe Check your route");
+    protected function ViewError() {
+        throw new ToDoException("Make a ViewError or a ViewIndex Handler . Maybe Check your route");
     }
 
 }

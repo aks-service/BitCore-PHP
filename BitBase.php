@@ -366,7 +366,7 @@ class BitBase {
         $_path = self::getPathOfNamespace($namespace);
         $path = $_path['dirname'] . DS . $_path['basename'];
 
-        if (isset($_path['extension']) && $_path['extension'] === self::PHP_EXT) {
+        if (isset($_path['extension']) && self::PHP_EXT === $_path['extension']) {
             self::$_usings[$namespace] = $path;
 
             include_once ($path);

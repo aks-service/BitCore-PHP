@@ -154,5 +154,11 @@ abstract class BSite implements ISite {
     public static function setDB($key, Array $value) {
         self::$_database[$key] = $value;
     }
+    
+    
+    static function Redirect($link = "/"){
+        header('Location: '.$link);
+        exit();
+    }
 
 }

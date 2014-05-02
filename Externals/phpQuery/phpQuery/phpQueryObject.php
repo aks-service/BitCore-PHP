@@ -461,45 +461,24 @@ class phpQueryObject
 	protected function runQuery($XQuery, $selector = null, $compare = null) {
 		$stack = array();
                 #Better than foreach and while loop
-                $total = (int)count($this->elements);
-                for($n =0; $n < $total;$n++){
-                        $stackNode =&$this->elements[$n];
-		//foreach($this->elements as $k => $stackNode) {
-			$detachAfter = false;
-			/*// to work on detached nodes we need temporary place them somewhere
-			// thats because context xpath queries sucks ;]
-			$testNode = $stackNode;
-			while ($testNode) {
-				if (! $testNode->parentNode && ! $this->isRoot($testNode)) {
-					$this->root->appendChild($testNode);
-					$detachAfter = $testNode;
-					break;
-				}
-				$testNode = isset($testNode->parentNode)
-					? $testNode->parentNode
-					: null;
-			}*/
+                //$total = (int)count($this->elements);
+                
+                foreach($this->elements as $stackNode){
+                        //$stackNode =&$this->elements[$n];
+			 
 			$query = $XQuery == '//' 
 				? '//*' : ".".$XQuery;
-			// run query, get elements
 			$nodes = $this->xpath->query($query,$stackNode);
                         
 			if (! $nodes->length )
                             continue;
                         
-			$debug = array();
 			foreach($nodes as $node) {
 				$matched = ($compare) ?  false : true;
-				if (!$matched && $compare && $compare($selector, $node))
-                                    $matched = true;
-				if ( $matched) {
-					if (phpQuery::$debug)
-						$debug[] = $this->whois( $node );
+				if ( $matched || !$matched && $compare && $compare($selector, $node)) 
 					$stack[] = $node;
-				}
+				
 			}
-			/*if ($detachAfter)
-				$this->root->removeChild($detachAfter);*/
 		}
 		$this->elements = $stack;
 	}
@@ -554,17 +533,15 @@ class phpQueryObject
 		$oldStack = $this->elements;
 		// here we will be keeping found elements
 		$stack = array();
-                static $mbstring;
-                if($mbstring)
-                    $mbstring = extension_loaded('mbstring');
+                
+                $helper = ['#' => 0x01,'['=>0x02,'.'=>0x04];
 		foreach($queries as $selector) {
 			$this->elements = $oldStack;
 			$delimiterBefore = false;
 			foreach($selector as $s) {
 				// TAG
-				$isTag = $mbstring && phpQuery::$mbstringSupport
-					? mb_ereg_match('^[\w|\||-]+$', $s) || $s == '*'
-					: preg_match('@^[\w|\||-]+$@', $s) || $s == '*';
+				$isTag = preg_match('@^[\w|\||-]+$@', $s) || $s == '*';
+                                $_h = isset($helper[$s[0]]) ? $helper[$s[0]] : 0;
                                 
 				if ($isTag) {
 					if ($this->isXML()) {
@@ -582,12 +559,12 @@ class phpQueryObject
 						$XQuery .= $s;
 					}
 				// ID
-				} else if ($s[0] == '#') {
+				} else if ($_h & 0x01) {
 					if ($delimiterBefore)
 						$XQuery .= '*';
 					$XQuery .= "[@id='".substr($s, 1)."']";
 				// ATTRIBUTES
-				} else if ($s[0] == '[') {
+				} else if ($_h & 0x02 ) {
 					if ($delimiterBefore)
 						$XQuery .= '*';
 					// strip side brackets
@@ -617,7 +594,7 @@ class phpQueryObject
 							break;
 					}
 				// CLASSES
-				} else if ($s[0] == '.') {
+				} else if ($_h & 0x04) {
 					if ($delimiterBefore)
 						$XQuery .= '*';
                                         $XQuery .= '[string-length(@class)>'. (strlen($s)-2).' and php:functionString("phpQueryObject::_matchClasses", @class, "'.$s.'") = "1"]';
@@ -626,35 +603,7 @@ class phpQueryObject
 					$XQuery = '';
 					if (! $this->length() )
 						break;
-				// ~ General Sibling Selector
-				} else if ($s[0] == '~') {
-					$this->runQuery($XQuery);
-					$XQuery = '';
-					$this->elements = $this
-						->siblings(
-							substr($s, 1)
-						)->elements;
-					if (! $this->length() )
-						break;
-				} else if ($s[0] == '+') {
-					// TODO /following-sibling::
-					$this->runQuery($XQuery);
-					$XQuery = '';
-					$subSelector = substr($s, 1);
-					$subElements = $this->elements;
-					$this->elements = array();
-					foreach($subElements as $node) {
-						// search first DOMElement sibling
-						$test = $node->nextSibling;
-						while($test && ! ($test instanceof DOMELEMENT))
-							$test = $test->nextSibling;
-						if ($test && $this->is($subSelector, $test))
-							$this->elements[] = $test;
-					}
-					if (! $this->length() )
-						break;
-				// PSEUDO CLASSES
-				} else if ($s[0] == ':') {
+                                } else if (':' == $s[0] ) {
 					// TODO optimization for :first :last
 					if ($XQuery) {
 						$this->runQuery($XQuery);
@@ -666,11 +615,11 @@ class phpQueryObject
 					if (! $this->length())
 						break;
 				// DIRECT DESCENDANDS
-				} else if ($s == '>') {
+				} else if ('>' == $s ) {
 					$XQuery .= '/';
 					$delimiterBefore = 2;
 				// ALL DESCENDANDS
-				} else if ($s == ' ') {
+				} else if (' ' == $s ) {
 					$XQuery .= '//';
 					$delimiterBefore = 2;
 				// ERRORS

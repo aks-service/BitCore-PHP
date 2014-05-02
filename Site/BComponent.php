@@ -335,15 +335,7 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
             $h[] = $this->_appendfunc;
         
         list($namespace, $append, $func) = $h;
-        $t = $this->_getTemplate($namespace);
-        
-        
-        //Alpha functions , [data-component]
-        foreach ($t->find('[data-template]') as $node) {
-            $func = $node->__get('data-func');
-            $func = $func ? $func : "append";
-            $node->$func($this->_getTemplate($node->__get('data-template')));
-        }
+        $t = $this->LoadMask($namespace);
         
         if ($t) {
             $this->_templates[$namespace] = array('0' => $append, '1' => $func, '2' => $t);
@@ -353,6 +345,18 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
         return $this;
     }
 
+    public static function LoadMask($namespace){
+        $t = self::_getTemplate($namespace);
+                
+        foreach ($t->find('[data-template]') as $node) {
+            $func = $node->__get('data-func');
+            $func = $func ? $func : "append";
+            $node->$func(self::LoadMask($node->__get('data-template')));
+        }
+        
+        return $t;
+    }
+    
     /**
      * 
      */
@@ -368,7 +372,12 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
         foreach ($this->_templates as $key => $v)
                 $this->beforeRenderTemplate($key);
         
-        $this->$func();
+        try{
+            $this->$func();
+        }catch(Exception $e){
+            $this->doException($e);
+        }
+        
         $this->_less->run(LessPHP::FINISH);
         //XXX:IMPLEMENT CACHE + ActionsFunctions
 
@@ -399,7 +408,7 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
         if($append instanceof phpQueryObject)
             return $append;
         
-        $append = $append ? $append : static::APPEND;
+        $append = $append ? $append : $this->_append;
         if(!isset($h[$append])) 
             $h[$append] = $this->_page->find($append);
         
@@ -413,6 +422,49 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
         $this->getContent($this->getVar($append, true))->$func($t);
     }
 
+    function doException(Exception $ex) {
+        $content = $this->getContent();
+        $content->empty();
+        
+        $content->append('<h1 class="border-left: 1px #fff dotted;">' . get_class($ex) . '</h1>');
+        
+        $trace = $ex->getTrace();
+        if (isset($trace[0]['class'])){
+            $reflection = new ReflectionMethod($trace[0]['class'], $trace[0]['function']);
+            $content->append('<h5 class="border-left: 1px #fff dotted;"><b>Function : ' . $trace[0]['class'] . $trace[0]['type'] . $trace[0]['function'] . '()</h5>');
+        }
+        elseif (isset($trace[0]['function']))
+        {
+            $reflection = new ReflectionFunction($trace[0]['function']);
+            $content->append('<h5 class="border-left: 1px #fff dotted;"><b>Function : ' . $trace[0]['function'] . '()</h5>');
+        }
+        $content->append('<h5 class="border-left: 1px #fff dotted;"><b>In File   : ' . $ex->getFile() . '@' . $ex->getLine() . '</h5>');
+       
+        if ($ex instanceof PDOException)
+            $content->append($ex->getMessage());
+        elseif ($ex instanceof PrintNiceException)
+            $content->append($ex->getErrorMessage());
+        else
+            $content->append($ex->getErrorMessage() . '');
+
+        
+
+        if (isset($trace[0])) {
+            $content->append('<h2 class="border-left: 1px #fff dotted;"><b>Backtrace: ' . '</h3>');
+            $content->append('<ol id="trace"></ol>');
+            $ol = $content->find("ol#trace");
+            foreach ($trace as $value) {
+                if (isset($value['line'])) {
+                    if (isset($value['class']))
+                        $ol->append('<li>' . $value['class'] . $value['type'] . $value['function'] . '<br> <ul><li>in ' . (isset($value['file']) ? $value['file'] : __FILE__) . '@' . $value['line'] . '</li></ul></li>');
+                    else
+                        $ol->append('<li>' . $value['function'] . '<br> <ul><li>in ' . (isset($value['file']) ? $value['file'] : __FILE__) . '@' . $value['line'] . '</li></ul></li>');
+                }
+            }
+        }
+        
+    }
+    
     /**
      * Standart Rendering
      */
