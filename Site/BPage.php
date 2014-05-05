@@ -24,9 +24,7 @@ abstract class BPage extends Component implements IPage {
     }
 
     protected function CheckRoute(&$r,&$isFinal = true){
-        $render = (isset($_SERVER['HTTP_X_REQUESTED_WITH'])  && 
-                    !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
-                    strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') ? "Ajax" : static::RENDER;
+        $render = $this->isAjax ? "Ajax" : static::RENDER;
         
         $func = isset($r["values"]['view']) ? $render . $r["values"]['view'] : $render . 'Index';
         try {
@@ -120,7 +118,7 @@ abstract class BPage extends Component implements IPage {
                 
                 try{
                     if ($this->_type != 'void')
-                        $this->_renderReturn = $func->invoke($this);
+                        $this->_renderReturn['self'] = $func->invoke($this);
                     else
                         $func->invoke($this);
                 }catch(Exception $e){

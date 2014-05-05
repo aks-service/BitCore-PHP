@@ -34,7 +34,7 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
     protected $_templates = array();
     protected $_components = array();
     protected $_modules = array();
-    
+    protected $_isAjax = false;
     
     /**
      * Standard constant for primary sql statement identifier
@@ -237,9 +237,13 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
      */
     public function Init() {
         $this->_auto = static::AUTO;
-        $this->_type = static::TYPE;
-        $this->_renderReturn = true;
         
+        $this->isAjax = (isset($_SERVER['HTTP_X_REQUESTED_WITH'])  && 
+                    !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+                    strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
+        
+        $this->_renderReturn['self'] = [];
+        $this->_type = $this->isAjax ? "mixed" : static::TYPE;
         $oRefl = new ReflectionClass($this);
         $this->_less = new LessPHP($this, $oRefl);
     }
@@ -361,9 +365,7 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
      * 
      */
     public function Render() {
-        $render = (isset($_SERVER['HTTP_X_REQUESTED_WITH'])  && 
-                    !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
-                    strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') ? "Ajax" : static::RENDER;
+        $render = $this->isAjax ? "Ajax" : static::RENDER;
         
         $func = $render . 'Index';
         $this->_less->run(LessPHP::RENDER);
@@ -373,7 +375,11 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
                 $this->beforeRenderTemplate($key);
         
         try{
-            $this->$func();
+            if ($this->_type != 'void')
+                $this->_renderReturn['self'] = $this->$func();
+            else
+                $this->$func();
+            
         }catch(Exception $e){
             $this->doException($e);
         }
@@ -423,7 +429,7 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
     }
 
     function doException(Exception $ex) {
-        $content = $this->getContent();
+        $content = $this->getContent($this->_append);
         $content->empty();
         
         $content->append('<h1 class="border-left: 1px #fff dotted;">' . get_class($ex) . '</h1>');
@@ -483,6 +489,7 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
         
         $t = new $_t($this, $init);
         $t->Render();
+        $this->_renderReturn['self']['components'][$key] = $t->_renderReturn;
     }
     
     public static function getSite(){
