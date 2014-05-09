@@ -242,7 +242,7 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
                     !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
                     strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
         
-        $this->_renderReturn['self'] = [];
+        $this->_renderReturn = [];
         $this->_type = $this->isAjax ? "mixed" : static::TYPE;
         $oRefl = new ReflectionClass($this);
         $this->_less = new LessPHP($this, $oRefl);
@@ -376,7 +376,7 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
         
         try{
             if ($this->_type != 'void')
-                $this->_renderReturn['self'] = $this->$func();
+                $this->_renderReturn = $this->$func();
             else
                 $this->$func();
             
@@ -394,7 +394,6 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
      * 
      */
     public function Finish() {
-        if ($this->_auto && $this->_renderReturn) {
             foreach ($this->_page->find('[data-component]') as $node) {
                 $func = $node->__get('data-func');
                 $func = $func ? $func : "append";
@@ -405,7 +404,6 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
             }
             foreach ($this->_components as $key => $v)
                 $this->beforeComponent($key);
-        }
     }
 
     protected function getContent($append = null){
@@ -425,10 +423,14 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
      */
     public function beforeRenderTemplate($key = '') {
         list($append, $func, $t) = $this->getTemplate($key, false);
+        
+        if(isset($this->_vars['key']))
+            $t->find('form')->attr('data-comp',$this->_vars['key']);
         $this->getContent($this->getVar($append, true))->$func($t);
     }
 
     function doException(Exception $ex) {
+        
         $content = $this->getContent($this->_append);
         $content->empty();
         
@@ -438,21 +440,27 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
         if (isset($trace[0]['class'])){
             $reflection = new ReflectionMethod($trace[0]['class'], $trace[0]['function']);
             $content->append('<h5 class="border-left: 1px #fff dotted;"><b>Function : ' . $trace[0]['class'] . $trace[0]['type'] . $trace[0]['function'] . '()</h5>');
+            $debug['title']= 'Function : ' . $trace[0]['class'] . $trace[0]['type'] . $trace[0]['function'] . '()';
         }
         elseif (isset($trace[0]['function']))
         {
             $reflection = new ReflectionFunction($trace[0]['function']);
             $content->append('<h5 class="border-left: 1px #fff dotted;"><b>Function : ' . $trace[0]['function'] . '()</h5>');
+            $debug['title']= 'Function : ' . $trace[0]['function'] . '()';
         }
         $content->append('<h5 class="border-left: 1px #fff dotted;"><b>In File   : ' . $ex->getFile() . '@' . $ex->getLine() . '</h5>');
-       
-        if ($ex instanceof PDOException)
+        $debug['file'] = $ex->getFile() . '@' . $ex->getLine();
+        
+        if ($ex instanceof PDOException){
             $content->append($ex->getMessage());
-        elseif ($ex instanceof PrintNiceException)
+            $debug['message'] = ($ex->getMessage());
+        }elseif ($ex instanceof PrintNiceException){
             $content->append($ex->getErrorMessage());
-        else
+            $debug['message'] = ($ex->getErrorMessage());
+        }else{
             $content->append($ex->getErrorMessage() . '');
-
+            $debug['message'] = ($ex->getErrorMessage());
+        }
         
 
         if (isset($trace[0])) {
@@ -461,14 +469,18 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
             $ol = $content->find("ol#trace");
             foreach ($trace as $value) {
                 if (isset($value['line'])) {
-                    if (isset($value['class']))
+                    if (isset($value['class'])){
+                        $debug['trace'][] = $value['class'] . $value['type'] . $value['function'];
                         $ol->append('<li>' . $value['class'] . $value['type'] . $value['function'] . '<br> <ul><li>in ' . (isset($value['file']) ? $value['file'] : __FILE__) . '@' . $value['line'] . '</li></ul></li>');
-                    else
+                    }else{
+                        $debug['trace'][] = $value['function'];
                         $ol->append('<li>' . $value['function'] . '<br> <ul><li>in ' . (isset($value['file']) ? $value['file'] : __FILE__) . '@' . $value['line'] . '</li></ul></li>');
+                    }
                 }
             }
         }
         
+        $this->_renderReturn = ['debug'=>$debug];
     }
     
     /**
@@ -482,6 +494,10 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
         
         if($_t::NEEDINIT && !isset($this->_vars[$key]))
             throw new ToDoException('Make Default ErrorHandler');
+        
+        
+        if (!isset($init['key']))
+            $init['key'] = $key;
         if (!isset($init['appendTo']))
             $init['appendTo'] = $this->getVar($append, true);
         if (!isset($init['appendFunc']))
@@ -489,7 +505,7 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
         
         $t = new $_t($this, $init);
         $t->Render();
-        $this->_renderReturn['self']['components'][$key] = $t->_renderReturn;
+        $this->_renderReturn['components'][$key] = $t->_renderReturn;
     }
     
     public static function getSite(){

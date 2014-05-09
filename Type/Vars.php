@@ -36,7 +36,7 @@ class Vars {
     private static $calls = array(
         'valregex' => [['Vars', '_tcall'], FILTER_VALIDATE_REGEXP, []],
         'valcallback' => [['Vars', '_tcall'], FILTER_CALLBACK, []],
-        'isbase64' => [['Vars', '_tcall'], FILTER_VALIDATE_REGEXP, ['regexp' => '/^[a-zA-Z0-9\/\r\n+]*={0,2}$/']],
+        'isbase64' => [['Vars', '_tcall'], FILTER_VALIDATE_REGEXP, ['options'=> ['regexp' => '/^[a-zA-Z0-9\/\r\n+]*={0,2}$/']]],
         'isint' => [['Vars', '_tcall'], FILTER_VALIDATE_INT, []],
         'isbool' => [['Vars', '_tcall'], FILTER_VALIDATE_BOOLEAN, []],
         'isfloat' => [['Vars', '_tcall'], FILTER_VALIDATE_FLOAT, []],
@@ -68,7 +68,7 @@ class Vars {
     }
     
     public static function registerCall($key,$func,$filter = FILTER_CALLBACK,$opt = array()){
-        self::$calls[strtolower($key)] = [$func,$filter,$opt];
+        self::$calls[strtolower($key)] = [$func,$filter,['options'=>$opt]];
     }
     
     private static $callTable = array('session'=> '_SESSION','post'=>'_POST','get'=>'_GET','request'=>'_REQUEST','env'=>'_ENV','file'=>'_FILES','arg'=>'argv');

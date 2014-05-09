@@ -129,7 +129,7 @@ class Route extends ArrayObject {
         $this->setRegex();
         
         $is_match = $this->isRegexMatch($path);
-        $_is_match = $this->isMethodMatch($server) && $this->isSecureMatch($server) && $this->isCustomMatch($server);
+        $_is_match = $is_match && $this->isMethodMatch($server) && $this->isSecureMatch($server) && $this->isCustomMatch($server);
         
         if (!$is_match || !$_is_match)
             return false;
