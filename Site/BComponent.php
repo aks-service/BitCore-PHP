@@ -406,12 +406,15 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
                 $this->beforeComponent($key);
     }
 
-    protected function getContent($append = null){
+    protected function getContent($append = null,$key = null){
         static $h;
         
-        if($append instanceof phpQueryObject)
+        if(!$key && $append instanceof phpQueryObject)
             return $append;
-        
+        elseif($key && $append instanceof phpQueryObject){
+            $h[$key] = $append;
+            return $h[$key];
+        }    
         $append = $append ? $append : $this->_append;
         if(!isset($h[$append])) 
             $h[$append] = $this->_page->find($append);
@@ -426,6 +429,7 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
         
         if(isset($this->_vars['key']))
             $t->find('form')->attr('data-comp',$this->_vars['key']);
+        
         $this->getContent($this->getVar($append, true))->$func($t);
     }
 
