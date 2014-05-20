@@ -260,7 +260,7 @@ class LessPHP {
         $reg = ':\[(.*?)\]:sx';
         $test = preg_match_all($reg, $command, $array, PREG_SET_ORDER);
 
-        if (!$test || strpos($array[0][1], "|") === false)
+        if (!$test)
             return $command;
         
         $t = explode("|", $array[0][1]);
