@@ -416,6 +416,7 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
             return $h[$key];
         }    
         $append = $append ? $append : $this->_append;
+        
         if(!isset($h[$append])) 
             $h[$append] = $this->_page->find($append);
         

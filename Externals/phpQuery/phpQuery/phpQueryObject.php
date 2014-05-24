@@ -1682,7 +1682,7 @@ class phpQueryObject
 	 */
 	public function text($text = null) {
 		if (!is_null($text)){
-                    $test = $this->documentWrapper->document->createTextNode(htmlspecialchars($text));
+                    $test = $this->documentWrapper->document->createTextNode($text);
                     
                     foreach($this->elements as $node) {  
                         $node->nodeValue = '';
