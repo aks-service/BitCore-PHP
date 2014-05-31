@@ -63,6 +63,15 @@ abstract class phpQuery {
     public static $active = 0;
     public static $dumpCount = 0;
 
+    public static function DOMNodeListToArray($DOMNodeList) {
+        $array = array();
+        if (!$DOMNodeList)
+            return $array;
+        foreach ($DOMNodeList as $node)
+            $array[] = $node;
+        return $array;
+    }
+    
     /**
      * Multi-purpose function.
      * Use pq() as shortcut.

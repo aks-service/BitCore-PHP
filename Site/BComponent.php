@@ -459,12 +459,12 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
         if ($ex instanceof PDOException){
             $content->append($ex->getMessage());
             $debug['message'] = ($ex->getMessage());
-        }elseif ($ex instanceof PrintNiceException){
+        }elseif ($ex instanceof BException){
             $content->append($ex->getErrorMessage());
             $debug['message'] = ($ex->getErrorMessage());
         }else{
-            $content->append($ex->getErrorMessage() . '');
-            $debug['message'] = ($ex->getErrorMessage());
+            $content->append($ex->getMessage() . '');
+            $debug['message'] = ($ex->getMessage());
         }
         
 
