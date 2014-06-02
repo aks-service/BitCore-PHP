@@ -106,7 +106,7 @@ class Vars {
         list($f,$filter,$stdOptions)  = isset(self::$calls[$func]) ? self::$calls[$func] : self::$error;
         
         $t = $f($filter,$var,array_merge($stdOptions,$options));
-        return mb_convert_encoding($t,'utf-8');
+        return mb_convert_encoding($t,'utf-8','auto');
     }
 
 }
