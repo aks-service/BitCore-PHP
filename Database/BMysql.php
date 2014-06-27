@@ -1,4 +1,5 @@
 <?PHP
+
 /**
  * Simple Mysql Wrapper
  * @author      Bitcoding <bitcoding@bitcoding.eu>
@@ -13,6 +14,7 @@
  * @category    Database
  */
 class BMysql extends BDatabase {
+
     /**
      * Construct Simple Mysql Connection
      * 
@@ -24,8 +26,8 @@ class BMysql extends BDatabase {
      * 
      * @see parent::__construct()
      */
-    function __construct($host, $username, $password, $db, $port = 3306,$driver_options = array()) {
-        
+    function __construct($host, $username, $password, $db, $port = 3306, $utf8 = false, $driver_options = array()) {
+
         if ($host == '')
             throw new DatabaseException('no_host');
         if (!$username)
@@ -35,7 +37,9 @@ class BMysql extends BDatabase {
         if (!$port || !is_numeric($port) || $port < 1 || $port > 65535)
             throw new DatabaseException('wrong_port');
 
-        parent::__construct('mysql:dbname='.$db.';host='.$host.';port='.$port,$username,$password,$driver_options );
+        parent::__construct('mysql:dbname=' . $db . ';host=' . $host . ';port=' . $port . (($utf8) ? ';charset=utf8' : ''), $username, $password, $driver_options);
     }
+
 }
+
 ?>
