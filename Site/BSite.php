@@ -100,14 +100,15 @@ abstract class BSite implements ISite {
             $content->append('<div class="docblock">'.$object.'</div>');
             
         }
-        if ($ex instanceof PDOException)
-            $content->append($ex->getMessage());
-        elseif ($ex instanceof PrintNiceException)
-            $content->append($ex->getErrorMessage());
-        else
-            $content->append($ex->getErrorMessage() . '');
+        if(Bit::isDebug())
+            if ($ex instanceof PDOException)
+                $content->append($ex->getMessage());
+            elseif ($ex instanceof PrintNiceException)
+                $content->append($ex->getErrorMessage());
+            else
+                $content->append($ex->getErrorMessage() . '');
 
-        if (isset($trace[0])) {
+        if (Bit::isDebug() && isset($trace[0])) {
             $content->append('<h2 class="border-left: 1px #fff dotted;"><b>Backtrace: ' . '</h3>');
             $content->append('<ol id="trace"></ol>');
             $ol = $js("ol#trace");

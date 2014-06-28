@@ -455,7 +455,7 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
         }
         $content->append('<h5 class="border-left: 1px #fff dotted;"><b>In File   : ' . $ex->getFile() . '@' . $ex->getLine() . '</h5>');
         $debug['file'] = $ex->getFile() . '@' . $ex->getLine();
-        
+        if(Bit::isDebug())
         if ($ex instanceof PDOException){
             $content->append($ex->getMessage());
             $debug['message'] = ($ex->getMessage());
@@ -468,7 +468,7 @@ abstract class BComponent implements ArrayAccess,ICompomnent, BLessPHP, IDatabas
         }
         
 
-        if (isset($trace[0])) {
+        if (Bit::isDebug() && isset($trace[0])) {
             $content->append('<h2 class="border-left: 1px #fff dotted;"><b>Backtrace: ' . '</h3>');
             $content->append('<ol id="trace"></ol>');
             $ol = $content->find("ol#trace");

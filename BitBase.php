@@ -160,7 +160,7 @@ class BitBase {
     const SIMPLE = 0x1000;
     const DEBUG = 0x2000;
     
-    protected static $state = 0x2000;
+    protected static $state = 0x0000;
 
     /**
      * @var array list of path aliases
@@ -224,7 +224,27 @@ class BitBase {
     public static function getSite() {
         return self::$_site;
     }
-    
+    /**
+     *
+     */
+    public static function isDebug()
+    {
+        return (((self::$state >> 12) << 12) & self::DEBUG) ? true : false;
+    }
+    /**
+     *
+     */
+    public static function setDebug()
+    {
+        self::$state = ((self::$state >> 12) << 12) & self::DEBUG ? self::$state&~(self::DEBUG|self::SIMPLE): (self::$state|self::DEBUG) &~(self::SIMPLE);
+    }
+    /**
+     *
+     */
+    public static function getState()
+    {
+        return (object)['ring'=> ((self::$state << 4) >> 4),'mode'=>((self::$state >> 4) << 4),'debug'=>((self::$state >> 12) << 12)];
+    }
     /**
      * 
      */
