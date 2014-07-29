@@ -135,33 +135,35 @@ class BitBase {
      * Finish Mode
      */
     const RING_4 = 0x0008;
-    
+
     /**
      * PHP-Runtime
      */
     const MODE_0 = 0x0000;
+
     /**
      * Cli-Mode
      */
     const MODE_1 = 0x0010;
+
     /**
      * Page-Mode
      */
     const MODE_2 = 0x0020;
+
     /**
      * Custom Mode 1
      */
     const MODE_3 = 0x0040;
+
     /**
      * Custom Mode 2
      */
     const MODE_4 = 0x0080;
-    
-    
     const RELEASE = 0x0000;
     const SIMPLE = 0x1000;
     const DEBUG = 0x2000;
-    
+
     protected static $state = 0x0000;
 
     /**
@@ -217,7 +219,7 @@ class BitBase {
         if (self::$_site !== null && !defined('BIT_TEST_RUN'))
             throw new InvalidException('bit_site_singelton');
         self::$_site = $site;
-        self::setState(self::RING_2,self::MODE_2);
+        self::setState(self::RING_2, self::MODE_2);
     }
 
     /**
@@ -226,37 +228,38 @@ class BitBase {
     public static function getSite() {
         return self::$_site;
     }
+
     /**
      *
      */
-    public static function isDebug()
-    {
+    public static function isDebug() {
         return (((self::$state >> 12) << 12) & self::DEBUG) ? true : false;
     }
+
     /**
      *
      */
-    public static function setDebug()
-    {
-        self::$state = ((self::$state >> 12) << 12) & self::DEBUG ? self::$state&~(self::DEBUG|self::SIMPLE): (self::$state|self::DEBUG) &~(self::SIMPLE);
+    public static function setDebug() {
+        self::$state = ((self::$state >> 12) << 12) & self::DEBUG ? self::$state & ~(self::DEBUG | self::SIMPLE) : (self::$state | self::DEBUG) & ~(self::SIMPLE);
     }
+
     /**
      *
      */
-    public static function getState()
-    {
-        return (object)['ring'=> ((self::$state << 4) >> 4),'mode'=>((self::$state >> 4) << 4),'debug'=>((self::$state >> 12) << 12)];
+    public static function getState() {
+        return (object) ['ring' => ((self::$state << 4) >> 4), 'mode' => ((self::$state >> 4) << 4), 'debug' => ((self::$state >> 12) << 12)];
     }
+
     /**
      * 
      */
-    protected static function setState($ring = null,$mode = null)
-    {
+    protected static function setState($ring = null, $mode = null) {
         $r = is_null($ring) ? ((self::$state << 4) >> 4) : $ring;
         $m = is_null($mode) ? ((self::$state >> 4) << 4) : $mode;
         $d = ((self::$state >> 12) << 12);
-        self::$state = $r|$m|$d;
+        self::$state = $r | $m | $d;
     }
+
     /**
      * init the Base.
      * @param BSite $site the Site instance
@@ -271,8 +274,8 @@ class BitBase {
             return call_user_func_array(array('phpQuery', 'pq'), func_get_args());
         };
         self::initErrorHandlers();
-        self::setState(self::RING_1,self::MODE_2);
-          
+        self::setState(self::RING_1, self::MODE_2);
+
         /**
          * Sets onShutdown handler to be BitBase::onShutdown
          */
@@ -320,8 +323,7 @@ class BitBase {
             if (!(self::$state)) {
                 var_dump($errno, $errstr, $errfile, $errline);
                 die('TODO: Ring 0');
-            }
-            else
+            } else
                 throw new PhpErrorException($errno, $errstr, $errfile, $errline);
         }
         return true;
@@ -442,7 +444,6 @@ class BitBase {
 
         return pathinfo($root . (('*' === $base) ? '' : DS . $base . "." . $ext));
     }
-    
 
     /* @param string namespace
      * @param boolean Init to be appended if the namespace refers to a file
@@ -531,10 +532,13 @@ class BitBase {
         if ($language === null) {
             $langs = Bit::getUserLanguages();
             $lang = explode('-', $langs[0]);
-            if (empty($lang[0]) || !ctype_alpha($lang[0]))
+            if (empty($lang[0]) || !ctype_alpha($lang[0])) {
                 $language = Agent::LANG_EN;
-            else
-                $language = $lang[0];
+            } elseif ($lang[0] == 'de') {
+                $language = Agent::LANG_DE;
+            } else {
+                $language = Agent::LANG_EN;
+            }
         }
         return $language;
     }
@@ -654,9 +658,9 @@ class BitBase {
 
         return $text;
     }
-    
-    public static function getIP()
-    {
+
+    public static function getIP() {
         return isset($_SERVER['HTTP_X_FORWARDED_FOR']) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : $_SERVER["REMOTE_ADDR"];
     }
+
 }
