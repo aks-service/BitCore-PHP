@@ -47,6 +47,8 @@ if (!defined('BIT_DIR_EXCEPTION'))
 if (!defined('DB'))
     define('DB', '..' . DS);
 
+if (!defined('PROXY_MODE'))
+    define('PROXY_MODE', false);
 include_once BIT_DIR_BASE . '/Interface.php'; //Include Simple Interfaces
 // XXX: Would I use it? i would see 
 

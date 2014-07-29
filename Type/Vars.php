@@ -71,7 +71,7 @@ class Vars {
         self::$calls[strtolower($key)] = [$func,$filter,['options'=>$opt]];
     }
     
-    private static $callTable = array('session'=> '_SESSION','post'=>'_POST','get'=>'_GET','request'=>'_REQUEST','env'=>'_ENV','file'=>'_FILES','arg'=>'argv');
+    private static $callTable = array('session'=> '_SESSION','post'=>'_POST','get'=>'_GET','request'=>'_REQUEST','env'=>'_ENV','file'=>'_FILES','arg'=>'argv','server'=>'_SERVER','cookie'=>'_COOKIE');
     private static $callCache = [];
     public static function __callStatic($name, $arguments) {
         
@@ -95,7 +95,6 @@ class Vars {
         list($var,$options) = $arguments;
         
         $callT = isset(self::$callTable[$name]);
-        
         
         $isset = $callT ? isset($GLOBALS[self::$callTable[$name]][$var]) : true;
         if($func == 'iset')
