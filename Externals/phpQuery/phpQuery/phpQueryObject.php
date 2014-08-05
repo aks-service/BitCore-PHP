@@ -233,13 +233,19 @@ class phpQueryObject
    * @access private
 	 */
 	public function offsetExists($offset) {
-		return $this->find($offset)->size() > 0;
+		return is_int($offset) ? (isset($this->elements[$offset]) ? 1 : 0)  : $this->find($offset)->size() > 0;
 	}
 	/**
    * @access private
 	 */
 	public function offsetGet($offset) {
-		return $this->find($offset);
+                $new = null;
+                if(is_int($offset) && isset($this->elements[$offset])){
+                    $new = new phpQueryObject($this->documentID);
+                    $new->elements = array();
+                    $new->elements[] = $this->elements[ $offset ];
+                }
+		return is_int($offset) ? (isset($this->elements[$offset]) ? $new : null)  : $this->find($offset);
 	}
 	/**
    * @access private
