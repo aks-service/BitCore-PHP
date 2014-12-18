@@ -126,7 +126,12 @@ class BDatabase extends PDO implements IDatabase {
     public function query($statement) {
         if (!$this->_connect)
             $this->__connect();
-        
+        //$statementB = strtoupper($statement);
+        static $ip;
+        //if(!$ip)
+        //    $ip = Bit::getIP();
+        //if((strpos($statementB,'INSERT') !== false||strpos($statementB,'UPDATE') !== false||strpos($statementB,'UNION') !== false||strpos($statementB,'SELECT') !== false))
+        //    error_log($ip.': '.$statement.PHP_EOL, 3, "/tmp/sqllog.log");
         return parent::query($statement);
     }
     /**

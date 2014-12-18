@@ -660,7 +660,7 @@ class BitBase {
     }
 
     public static function getIP() {
-        return PROXY_MODE && Vars::server_getIP('HTTP_X_FORWARDED_FOR') ? Vars::server_getIP('HTTP_X_FORWARDED_FOR') : $_SERVER["REMOTE_ADDR"];
+        return PROXY_MODE && Vars::server_isip('HTTP_X_FORWARDED_FOR') ? Vars::server_getstring('HTTP_X_FORWARDED_FOR') : $_SERVER["REMOTE_ADDR"];
     }
 
 }
