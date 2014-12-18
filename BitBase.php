@@ -529,6 +529,9 @@ class BitBase {
      */
     public static function getPreferredLanguage() {
         static $language = null;
+        if (isset($_SESSION['BitLanguage'])) {
+            return $_SESSION['BitLanguage'];
+        }
         if ($language === null) {
             $langs = Bit::getUserLanguages();
             $lang = explode('-', $langs[0]);
