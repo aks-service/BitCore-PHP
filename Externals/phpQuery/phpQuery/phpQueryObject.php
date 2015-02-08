@@ -2372,7 +2372,7 @@ class phpQueryObject
                             $return[] = $tmp;
                         continue;    
                     } 
-                    elseif($call & SELECTOR_UNK || $stream->nchar() === '/')
+                    elseif($call & self::SELECTOR_UNK || $stream->nchar() === '/')
                     {
                         $stream->char();
                         $return[] = ' ';
