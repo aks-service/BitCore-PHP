@@ -102,7 +102,7 @@ class Map implements IDebuggable {
         'params'      => null,
         'values'      => null,
         'method'      => null,
-        'secure'      => false,
+        'secure'      => null,
         'routable'    => true,
         'is_match'    => null,
         'match_force' => null,
