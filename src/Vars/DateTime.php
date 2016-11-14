@@ -1,0 +1,267 @@
+<?php
+namespace Bit\Vars;
+
+use Bit\Database\Driver;
+use Bit\Core\Vars;
+use DateTimeInterface;
+use Exception;
+use RuntimeException;
+
+/**
+ * Datetime type converter.
+ *
+ * Use to convert datetime instances to strings & back.
+ */
+class DateTime extends Vars
+{
+
+    /**
+     * The class to use for representing date objects
+     *
+     * This property can only be used before an instance of this type
+     * class is constructed. After that use `useMutable()` or `useImmutable()` instead.
+     *
+     * @var string
+     * @deprecated Use DateTimeType::useMutable() or DateTimeType::useImmutable() instead.
+     */
+    public static $dateTimeClass = 'Bit\I18n\Time';
+
+    /**
+     * String format to use for DateTime parsing
+     *
+     * @var string
+     */
+    protected $_format = 'Y-m-d H:i:s';
+
+    /**
+     * Whether dates should be parsed using a locale aware parser
+     * when marshalling string inputs.
+     *
+     * @var bool
+     */
+    protected $_useLocaleParser = false;
+
+    /**
+     * The date format to use for parsing incoming dates for marshalling.
+     *
+     * @var string|array|int
+     */
+    protected $_localeFormat;
+
+    /**
+     * An instance of the configured dateTimeClass, used to quickly generate
+     * new instances without calling the constructor.
+     *
+     * @var \DateTime
+     */
+    protected $_datetimeInstance;
+
+    /**
+     * The classname to use when creating objects.
+     *
+     * @var string
+     */
+    protected $_className;
+
+    /**
+     * {@inheritDoc}
+     */
+    public function __construct($name = null,$var = null,$opts=[])
+    {
+        parent::__construct($name,$var,$opts);
+        $this->_setClassName(static::$dateTimeClass, 'DateTime');
+    }
+
+    /**
+     * Convert DateTime instance into strings.
+     *
+     * @param string|int|\DateTime $value The value to convert.
+     * @param \Bit\Database\Driver $driver The driver instance to convert with.
+     * @return string
+     */
+    public function toDatabase(Driver $driver = null)
+    {
+        if ($this->_value === null || is_string($this->_value)) {
+            return $this->_value;
+        }
+        if (is_int($this->_value)) {
+            $class = $this->_className;
+            $this->_value = new $class('@' . $this->_value);
+        }
+        return $this->_value->format($this->_format);
+    }
+
+    /**
+     * Convert strings into DateTime instances.
+     *
+     * @param string $value The value to convert.
+     * @param \Bit\Database\Driver $driver The driver instance to convert with.
+     * @return \Bit\I18n\Time|\DateTime
+     */
+    public function toPHP(Driver $driver = null)
+    {
+        if ($this->_value === null || strpos($value, '0000-00-00') === 0) {
+            return null;
+        }
+
+        if (strpos($this->_value, '.') !== false) {
+            list($this->_value) = explode('.', $this->_value);
+        }
+
+        $instance = clone $this->_datetimeInstance;
+        return $instance->modify($this->_value);
+    }
+
+    /**
+     * Convert request data into a datetime object.
+     *
+     * @param mixed $value Request data
+     * @return \Bit\I18n\Time|\DateTime
+     */
+    public function marshal($value)
+    {
+        if ($value instanceof DateTimeInterface) {
+            return $value;
+        }
+
+        $class = $this->_className;
+        try {
+            $compare = $date = false;
+            if ($value === '' || $value === null || $value === false || $value === true) {
+                return null;
+            } elseif (is_numeric($value)) {
+                $date = new $class('@' . $value);
+            } elseif (is_string($value) && $this->_useLocaleParser) {
+                return $this->_parseValue($value);
+            } elseif (is_string($value)) {
+                $date = new $class($value);
+                $compare = true;
+            }
+            if ($compare && $date && $date->format($this->_format) !== $value) {
+                return $value;
+            }
+            if ($date) {
+                return $date;
+            }
+        } catch (Exception $e) {
+            return $value;
+        }
+
+        if (is_array($value) && implode('', $value) === '') {
+            return null;
+        }
+        $value += ['hour' => 0, 'minute' => 0, 'second' => 0];
+
+        $format = '';
+        if (isset($value['year'], $value['month'], $value['day']) &&
+            (is_numeric($value['year']) && is_numeric($value['month']) && is_numeric($value['day']))
+        ) {
+            $format .= sprintf('%d-%02d-%02d', $value['year'], $value['month'], $value['day']);
+        }
+
+        if (isset($value['meridian']) && (int)$value['hour'] === 12) {
+            $value['hour'] = 0;
+        }
+        if (isset($value['meridian'])) {
+            $value['hour'] = strtolower($value['meridian']) === 'am' ? $value['hour'] : $value['hour'] + 12;
+        }
+        $format .= sprintf(
+            '%s%02d:%02d:%02d',
+            empty($format) ? '' : ' ',
+            $value['hour'],
+            $value['minute'],
+            $value['second']
+        );
+        $tz = isset($value['timezone']) ? $value['timezone'] : null;
+
+        return new $class($format, $tz);
+    }
+
+    /**
+     * Sets whether or not to parse dates passed to the marshal() function
+     * by using a locale aware parser.
+     *
+     * @param bool $enable Whether or not to enable
+     * @return $this
+     */
+    public function useLocaleParser($enable = true)
+    {
+        if ($enable === false) {
+            $this->_useLocaleParser = $enable;
+            return $this;
+        }
+        if (method_exists($this->_className, 'parseDateTime')) {
+            $this->_useLocaleParser = $enable;
+            return $this;
+        }
+        throw new RuntimeException(
+            sprintf('Cannot use locale parsing with the %s class', $this->_className)
+        );
+    }
+
+    /**
+     * Sets the format string to use for parsing dates in this class. The formats
+     * that are accepted are documented in the `Bit\I18n\Time::parseDateTime()`
+     * function.
+     *
+     * @param string|array $format The format in which the string are passed.
+     * @see \Bit\I18n\Time::parseDateTime()
+     * @return $this
+     */
+    public function setLocaleFormat($format)
+    {
+        $this->_localeFormat = $format;
+        return $this;
+    }
+
+    /**
+     * Change the preferred class name to the FrozenTime implementation.
+     *
+     * @return $this
+     */
+    public function useImmutable()
+    {
+        $this->_setClassName('Bit\I18n\FrozenTime', 'DateTimeImmutable');
+        return $this;
+    }
+
+    /**
+     * Set the classname to use when building objects.
+     *
+     * @param string $class The classname to use.
+     * @param string $fallback The classname to use when the preferred class does not exist.
+     * @return void
+     */
+    protected function _setClassName($class, $fallback)
+    {
+        if (!class_exists($class)) {
+            $class = $fallback;
+        }
+        $this->_className = $class;
+        $this->_datetimeInstance = new $this->_className;
+    }
+
+    /**
+     * Change the preferred class name to the mutable Time implementation.
+     *
+     * @return $this
+     */
+    public function useMutable()
+    {
+        $this->_setClassName('Bit\I18n\Time', 'DateTime');
+        return $this;
+    }
+
+    /**
+     * Converts a string into a DateTime object after parseing it using the locale
+     * aware parser with the specified format.
+     *
+     * @param string $value The value to parse and convert to an object.
+     * @return \Bit\I18n\Time|null
+     */
+    protected function _parseValue($value)
+    {
+        $class = $this->_className;
+        return $class::parseDateTime($value, $this->_localeFormat);
+    }
+}
