@@ -39,13 +39,13 @@ trait QueryTrait
      *
      * @var array
      */
-    protected $_paths = [];
+    protected static $_paths = [];
 
     function paths($plugin = null, $cached = true,$path = "Template")
     {
         if ($cached === true) {
-            if (!empty($this->_paths[$path])) {
-                return $this->_paths[$path];
+            if (!empty(static::$_paths[$plugin][$path])) {
+                return static::$_paths[$plugin][$path];
             }
         }
 
@@ -64,7 +64,7 @@ trait QueryTrait
             [dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Template' . DIRECTORY_SEPARATOR]
         );
 
-        return $this->_paths[$path] = $paths;
+        return static::$_paths[$plugin][$path] = $paths;
     }
 
 
@@ -104,7 +104,7 @@ trait QueryTrait
         $append =  $append ? :static::APPEND;
         $func = $func ? :static::APPEND_FUNC;
 
-        $this->page->find($append)->$func($this->getTemplate($template)->find('body > *'));
+        $this->page->find($append)->$func($this->getTemplate($template));
         return $this;
     }
 

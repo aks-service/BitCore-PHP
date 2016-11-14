@@ -68,7 +68,7 @@ use RuntimeException;
  */
 class Controller implements \ArrayAccess, EventListenerInterface, EventDispatcherInterface, LessInterface
 {
-    CONST APPEND = '#page-content';
+    CONST APPEND = 'body';
     CONST APPEND_FUNC = 'append';
 
 

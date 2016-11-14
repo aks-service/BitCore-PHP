@@ -142,7 +142,7 @@ abstract class Cell implements \ArrayAccess, LessInterface
         $render = function () use ($call) {
             try {
                 $reflect = new ReflectionMethod($this, $this->action);
-                $this->page = new QueryObject('<html><body></body></html>') ;
+                $this->page = new QueryObject('<body/>') ;
                 $this->method = $this->less()->getMethod($this->action);
 
                 array_map(function ($params) {

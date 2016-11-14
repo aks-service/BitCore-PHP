@@ -220,7 +220,7 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
         restore_error_handler();
 
         if ('' !== trim($content)) {
-            @$dom->loadHTML($content);
+            @$dom->loadHTML($content,LIBXML_HTML_NOIMPLIED);
         }
 
         libxml_use_internal_errors($internalErrors);
@@ -641,10 +641,8 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
             foreach($this->nodes as $alreadyAdded => $node) {
                 $node->nodeValue = '';
                 foreach ($nodes->nodes() as $newNode) {
-                    foreach($newNode->firstChild->childNodes as $nodedef) {
-                        $nodedef = $this->document->importNode($nodedef, true);
-                        $node->appendChild($nodedef);
-                    }
+                    $newNode = $this->document->importNode($newNode, true);
+                    $node->appendChild($newNode);
                 }
             }
             return $this;
@@ -1015,7 +1013,7 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
         $return = array();
 
         if (!($source instanceof QueryObject)) {
-            $source = (new self($source, null, null, $sourceCharset))->find('body > *');
+            $source = (new self($source, null, null, $sourceCharset));
         }
         if ($source->getDocumentID() === $this->getDocumentID()) {
 
@@ -1052,13 +1050,12 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
 
         list($to,$from) =$to ? [$target,$this] : [$this,$target];
 
-
         $insertTo = $to;
         $insertFrom = $to->getDocumentID() === $from->getDocumentID()
             ? $from
             : $insertTo->import($from);
 
-
+        
         foreach ($insertTo as $insertNumber => $toNode) {
             switch ($type) {
                 case 'prependTo':
