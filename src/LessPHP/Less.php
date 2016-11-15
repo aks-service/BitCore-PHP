@@ -26,10 +26,6 @@ abstract class Less
      * @var array|null
      */
     public $tags = [];
-    /**
-     * @var array|null
-     */
-    private $_methods = null;
 
     /**
      * Less constructor.
@@ -37,23 +33,14 @@ abstract class Less
      * @param null $doc
      */
     function __construct(LessInterface &$parent = null) {
-        if (!($parent instanceof LessInterface)) {
-            //XXX:Todo
-        }
-
         $this->_parent = $parent;
         list($ClassReflector,$ParentReflector) = $parent->reflect();
 
         $this->tags = array_merge($this->tags,$this->parseDocBlock($ClassReflector->getDocComment()));
-        $this->_methods = array_diff_key($ClassReflector->methods, $ParentReflector->methods);
     }
 
     function getMethod($func){
-        if(!isset($this->_methods[$func])) {
-            return null;
-        }
-        list(,$method,) = array_values((array)$this->_methods[$func]);
-        return new LessMethod($this->_parent,$method);
+        return new LessMethod($this->_parent,new \ReflectionMethod($this->_parent,$func));
     }
 
     /**

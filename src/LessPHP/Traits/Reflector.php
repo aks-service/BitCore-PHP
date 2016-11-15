@@ -20,9 +20,9 @@ trait Reflector{
         $pClass = get_class();
 
         if(!isset($this->_reflect[$class]))
-            $this->_reflect[$class]  = new Reflect($class);
+            $this->_reflect[$class]  = new \ReflectionClass($class);
         if(!isset($this->_reflect[$pClass]))
-            $this->_reflect[$pClass] = new Reflect($pClass);
+            $this->_reflect[$pClass] = new \ReflectionClass($pClass);
 
         $ClassReflector = &$this->_reflect[$class];
         $ParentReflector = &$this->_reflect[$pClass];

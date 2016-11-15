@@ -386,15 +386,6 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     }
 
     /**
-     * @param $selector
-     * @return self|QueryObject
-     */
-    public function find($selector)
-    {
-        // The CssSelector already prefixes the selector with descendant-or-self::
-        return $this->filter($selector);
-    }
-    /**
      * Filters the list of nodes with a CSS selector.
      *
      * This method only works if you have installed the CssSelector Symfony Component.
@@ -405,10 +396,10 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
      *
      * @throws \RuntimeException if the CssSelector Component is not available
      */
-    public function filter($selector)
+    public function find($selector)
     {
         // The CssSelector already prefixes the selector with descendant-or-self::
-        return $this->filterRelativeXPath(PHPQueryFactory::selector()->toXPath($selector));
+        return $this->filterRelativeXPath(PHPQueryFactory::toXPath($selector));
     }
 
     /**

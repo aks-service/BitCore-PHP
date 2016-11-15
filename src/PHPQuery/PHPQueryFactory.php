@@ -18,6 +18,17 @@ class PHPQueryFactory{
      */
     protected static $_selector = null;
 
+    /**
+     * Holds a list of all loaded plugins and their configuration
+     *
+     * @var string[]
+     */
+    protected static $_selectorCache = null;
+
+    /**
+     * @param null $selector
+     * @return null|CssSelectorConverter
+     */
     public static function selector($selector = null){
         if($selector === null){
             if(!static::$_selector)
@@ -26,6 +37,18 @@ class PHPQueryFactory{
         }
 
         return static::$_selector = $selector;
+    }
+
+    /**
+     * @param $selector
+     * @return string
+     */
+    public static function toXPath($selector){
+        if(isset(static::$_selectorCache[$selector])){
+            return static::$_selectorCache[$selector];
+        }
+
+        return static::$_selectorCache[$selector] = static::selector()->toXPath($selector);
     }
 
     /**
@@ -174,57 +197,6 @@ class PHPQueryFactory{
         static::$_methods[$method] = $call;
     }
 
-    /**
-     * Multi-purpose function.
-     * Use pq() as shortcut.
-     *
-     * @param string|DOMNode|DOMNodeList|array	$arg1	HTML markup, CSS Selector, DOMNode or array of DOMNodes
-     * @param string|phpQueryObject|DOMNode	$context	DOM ID from $pq->getDocumentID(), phpQuery object (determines also query root) or DOMNode (determines also query root)
-     *
-     * @return phpQueryObject|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery|QueryTemplatesPhpQuery|false
-     * phpQuery object or false in case of error.
-     */
-    public function pq($arg1, $context = null) {
-        /*$domId = (is_null($context)) ? (is_object($arg1) && !($arg1 instanceof phpQueryObject) ? self::getDocumentID($arg1): self::$defaultDocumentID) : self::getDocumentID($context) ;
-
-        $phpQuery = new phpQueryObject($domId);
-
-        if ($arg1 instanceof phpQueryObject) {
-            if ($arg1->getDocumentID() == $domId)
-                return $arg1;
-
-            $phpQuery->elements = array();
-            foreach ($arg1->elements as $node)
-                $phpQuery->elements[] = $phpQuery->document->importNode($node, true);
-            return $phpQuery;
-        } else if ($arg1 instanceof DOMNODE || (is_array($arg1) && isset($arg1[0]) && $arg1[0] instanceof DOMNODE)) {
-            if (!($arg1 instanceof DOMNODELIST) && !is_array($arg1))
-                $arg1 = array($arg1);
-
-            $phpQuery->elements = array();
-            foreach ($arg1 as $node) {
-                $sameDocument = $node->ownerDocument instanceof DOMDOCUMENT && !$node->ownerDocument->isSameNode($phpQuery->document);
-                $phpQuery->elements[] = $sameDocument ? $phpQuery->document->importNode($node, true) : $node;
-            }
-            return $phpQuery;
-        } else if (self::isMarkup($arg1)) {
-            return $phpQuery->newInstance(
-                $phpQuery->documentWrapper->import($arg1)
-            );
-        } else {
-            if ($context){
-                if($context instanceof phpQueryObject){
-                    $phpQuery->elements = $context->elements;
-                }else if ($context instanceof DOMNODELIST) {
-                    $phpQuery->elements = array();
-                    foreach ($context as $node)
-                        $phpQuery->elements[] = $node;
-                } else if ($context instanceof DOMNODE)
-                    $phpQuery->elements = array($context);
-            }
-            return $phpQuery->find($arg1);
-        }*/
-    }
     function __debugInfo()
     {
         return [

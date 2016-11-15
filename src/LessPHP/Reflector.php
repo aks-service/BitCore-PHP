@@ -18,19 +18,7 @@ class Reflector extends \ReflectionClass{
         parent::__construct($argument);
         
         foreach($this->getMethods() as $reflectmethod) {
-            $method = &$this->_methods[$reflectmethod->getName()];
-            $params = array();
-            
-            foreach($reflectmethod->getParameters() as $key=> &$param) {
-                $params[$param->getName()] = (object)['param' => $param, 
-                    'type'=> ($param->getClass() ? $param->getClass()->getName() : null),
-                    'passedbyRef'=>$param->isPassedByReference(),
-                    'allowNull'=>$param->allowsNull(),
-                    'pos' => $key
-                    ];
-            }        
-    
-            $method = (object)['func'=>$reflectmethod->getName(),'method' => $reflectmethod,'params'=>$params];
+            $this->_methods[$reflectmethod->getName()] = $reflectmethod;
         }
     }
     function __get($name) {

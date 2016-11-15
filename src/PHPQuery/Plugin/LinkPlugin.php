@@ -29,7 +29,7 @@ class LinkPlugin extends BasePlugin
 
         $explode = $this->config('explode');
 
-        $query->filter($this->config('selector'))->each(function(QueryObject $node) use ($args,$explode,$full,$func){
+        $query->find($this->config('selector'))->each(function(QueryObject $node) use ($args,$explode,$full,$func){
             $_link = explode($explode,$node->attr('href'));
             $href = array_pop($_link);
 
