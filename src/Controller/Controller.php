@@ -65,6 +65,12 @@ use RuntimeException;
  * - `afterFilter(Event $event)`
  *   Called after each action is complete and after the view is rendered.
  *
+ * @property \Bit\Controller\Component\CookieComponent $Cookie
+ * @property \Bit\Controller\Component\CsrfComponent $Csrf
+ * @property \Bit\Controller\Component\FlashComponent $Flash
+ * @property \Bit\Controller\Component\RequestHandlerComponent $RequestHandler
+ * @property \Bit\Controller\Component\SecurityComponent $Security
+ * 
  */
 class Controller implements \ArrayAccess, EventListenerInterface, EventDispatcherInterface, LessInterface
 {
@@ -126,8 +132,27 @@ class Controller implements \ArrayAccess, EventListenerInterface, EventDispatche
      * @var bool
      */
     public $autoRender = true;
-
-
+    
+    /**
+     * Instance of ComponentRegistry used to create Components
+     *
+     * @var \Bit\Controller\ComponentRegistry
+     */
+    protected $_components = null;
+    
+    /**
+     * Array containing the names of components this controller uses. Component names
+     * should not contain the "Component" portion of the class name.
+     *
+     * Example:
+     * ```
+     * public $components = ['RequestHandler', 'Acl'];
+     * ```
+     *
+     * @var array
+     */
+    public $components = [];
+    
     /**
      * Holds all passed params.
      *
@@ -150,8 +175,9 @@ class Controller implements \ArrayAccess, EventListenerInterface, EventDispatche
      * @param \Bit\Network\Response|null $response Response object for this controller.
      * @param string|null $name Override the name useful in testing when using mocks.
      * @param \Bit\Event\EventManager|null $eventManager The event manager. Defaults to a new instance.
+     * @param \Bit\Controller\ComponentRegistry|null $components The component registry. Defaults to a new instance.
      */
-    public function __construct(Request $request = null, Response $response = null, $name = null, $eventManager = null)
+    public function __construct(Request $request = null, Response $response = null, $name = null, $eventManager = null, $components = null)
     {
         if ($name !== null) {
             $this->name = $name;
@@ -172,10 +198,13 @@ class Controller implements \ArrayAccess, EventListenerInterface, EventDispatche
         if ($eventManager !== null) {
             $this->eventManager($eventManager);
         }
-
+        
+        if ($components !== null) {
+            $this->components($components);
+        }
 
         $this->initialize();
-
+        $this->_loadComponents();
         $this->eventManager()->on($this);
     }
 
@@ -189,6 +218,50 @@ class Controller implements \ArrayAccess, EventListenerInterface, EventDispatche
      */
     public function initialize()
     {
+    }
+
+    /**
+     * Get the component registry for this controller.
+     *
+     * If called with the first parameter, it will be set as the controller $this->_components property
+     *
+     * @param \Bit\Controller\ComponentRegistry|null $components Component registry.
+     *
+     * @return \Bit\Controller\ComponentRegistry
+     */
+    public function components($components = null)
+    {
+        if ($components === null && $this->_components === null) {
+            $this->_components = new ComponentRegistry($this);
+        }
+        if ($components !== null) {
+            $components->setController($this);
+            $this->_components = $components;
+        }
+        return $this->_components;
+    }
+
+    /**
+     * Add a component to the controller's registry.
+     *
+     * This method will also set the component to a property.
+     * For example:
+     *
+     * ```
+     * $this->loadComponent('Acl.Acl');
+     * ```
+     *
+     * Will result in a `Toolbar` property being set.
+     *
+     * @param string $name The name of the component to load.
+     * @param array $config The config for the component.
+     * @return \Bit\Controller\Component
+     */
+    public function loadComponent($name, array $config = [])
+    {
+        list(, $prop) = pluginSplit($name);
+        $this->{$prop} = $this->components()->load($name, $config);
+        return $this->{$prop};
     }
 
     /**
@@ -280,6 +353,22 @@ class Controller implements \ArrayAccess, EventListenerInterface, EventDispatche
         ];
     }
 
+    /**
+     * Loads the defined components using the Component factory.
+     *
+     * @return void
+     */
+    protected function _loadComponents()
+    {
+        if (empty($this->components)) {
+            return;
+        }
+        $registry = $this->components();
+        $components = $registry->normalizeArray($this->components);
+        foreach ($components as $properties) {
+            $this->loadComponent($properties['class'], $properties['config']);
+        }
+    }
 
     /**
      * Perform the startup process for this controller.

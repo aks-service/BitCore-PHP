@@ -25,7 +25,7 @@ trait QueryTrait
     public $plugin = null;
 
     /**
-     * @var LessMethod|null
+     * @var \Bit\LessPHP\LessMethod|null
      */
     public $method     = null;
 
