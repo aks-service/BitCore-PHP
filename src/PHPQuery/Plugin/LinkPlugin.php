@@ -40,11 +40,11 @@ class LinkPlugin extends BasePlugin
             }
 
             list($href,$args) =$func ? $func($node,$href,$args) : [$href,$args];
+
             try {
                 $url = Router::url(($href ? ['_name' => $href] : []) + $args, $full);
             } catch(\Exception $e){
                 var_dump($node->html());
-
                 $url = "not_found";
             }
 
@@ -52,7 +52,6 @@ class LinkPlugin extends BasePlugin
 
             //$node->text($node->attr('href'));
         });
-
         //var_dump([$this,$query,$args]);
         //die();
         return $query;

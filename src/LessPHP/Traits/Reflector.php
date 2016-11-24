@@ -17,7 +17,7 @@ trait Reflector{
     public function reflect(){
         $this->_reflect = [];
         $class  = get_class($this);
-        $pClass = get_class();
+        $pClass = get_parent_class($class);
 
         if(!isset($this->_reflect[$class]))
             $this->_reflect[$class]  = new \ReflectionClass($class);

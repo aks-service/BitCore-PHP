@@ -1125,7 +1125,7 @@ class Request implements ArrayAccess
      * will be created for you.
      *
      * @param string|null $name Dot separated name of the value to read/write
-     * @return mixed|$this Either the value being read, or this so you can chain consecutive writes.
+     * @return array|mixed|$this Either the value being read, or this so you can chain consecutive writes.
      */
     public function data($name = null)
     {

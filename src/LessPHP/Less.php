@@ -7,6 +7,7 @@
  */
 
 namespace Bit\LessPHP;
+
 use Bit\LessPHP\Interfaces\Less as LessInterface;
 use Bit\LessPHP\Traits\DocComment;
 
@@ -16,7 +17,7 @@ abstract class Less
     /**
      * @var bool
      */
-    static  $cacheit = true;
+    static $cacheit = true;
     /**
      * @var \Bit\LessPHP\Interfaces\Less|null
      */
@@ -32,23 +33,25 @@ abstract class Less
      * @param \Bit\LessPHP\Interfaces\Less|null $parent
      * @param null $doc
      */
-    function __construct(LessInterface &$parent = null) {
+    function __construct(LessInterface &$parent = null)
+    {
         $this->_parent = $parent;
-        list($ClassReflector,$ParentReflector) = $parent->reflect();
-
-        $this->tags = array_merge($this->tags,$this->parseDocBlock($ClassReflector->getDocComment()));
+        list($ClassReflector, $ParentReflector) = $parent->reflect();
+        $this->tags = array_merge($this->tags, $this->parseDocBlock($ParentReflector->getDocComment().$ClassReflector->getDocComment()));
     }
 
-    function getMethod($func){
-        return new LessMethod($this->_parent,new \ReflectionMethod($this->_parent,$func));
+    function getMethod($func)
+    {
+        return new LessMethod($this->_parent, new \ReflectionMethod($this->_parent, $func));
     }
 
     /**
      * @param null $tag
      * @return array|mixed|null
      */
-    public function getTag($tag = null){
-        if($tag === null)
+    public function getTag($tag = null)
+    {
+        if ($tag === null)
             return null;
 
         $tag = strtolower($tag);
@@ -59,8 +62,9 @@ abstract class Less
      * @param null $tag
      * @return null|mixed
      */
-    public function getFirstTag($tag = null){
-        if($tag === null)
+    public function getFirstTag($tag = null)
+    {
+        if ($tag === null)
             return null;
 
         $tags = $this->getTag($tag);
@@ -72,8 +76,9 @@ abstract class Less
      * @param null $tag
      * @return null|mixed
      */
-    public function getLastTag($tag = null){
-        if($tag === null)
+    public function getLastTag($tag = null)
+    {
+        if ($tag === null)
             return null;
 
         $tags = $this->getTag($tag);
@@ -88,7 +93,8 @@ abstract class Less
      * @param $command
      * @return array
      */
-    public static function GetArrayVar($command) {
+    public static function GetArrayVar($command)
+    {
         if (is_array($command))
             return $command;
 
@@ -106,7 +112,7 @@ abstract class Less
                 continue;
             if (strpos($value, ":") === false)
                 $ret[] = isset(static::$_varhelper[strtolower($value)]) ? static::$_varhelper[strtolower($value)] : $value;
-            else{
+            else {
                 list($key, $v) = explode(":", trim($value));
                 $ret[$key] = isset(static::$_varhelper[strtolower($v)]) ? static::$_varhelper[strtolower($v)] : $v;
             }
@@ -115,12 +121,11 @@ abstract class Less
     }
 
 
-
     function __debugInfo()
     {
         return [
             'parent' => get_class($this->_parent),
-            'tags'   => $this->tags
+            'tags' => $this->tags
         ];
     }
 }

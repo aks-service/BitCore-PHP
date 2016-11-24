@@ -320,18 +320,20 @@ class Controller implements \ArrayAccess, EventListenerInterface, EventDispatche
      */
     protected function _runAction(string $action, array $params)
     {
-        $this->page = $this->getTemplate($this->template);
         $this->method = $this->less()->getMethod($action);
+        //Todo more Test
+        if ($this->autoRender)
+        {
+            $this->page = $this->getTemplate($this->template);
+            array_map(function ($params) {
+                call_user_func_array([$this, "loadTemplate"], $params);
+            }, $this->method->getTag('template'));
 
-        array_map(function ($params) {
-            call_user_func_array([$this, "loadTemplate"], $params);
-        }, $this->method->getTag('template'));
-
-        $event = $this->dispatchEvent('Controller.beforeRunAction');
-        if ($event->result instanceof Response) {
-            return $event->result;
+            $event = $this->dispatchEvent('Controller.beforeRunAction');
+            if ($event->result instanceof Response) {
+                return $event->result;
+            }
         }
-
         return call_user_func_array([$this, $action], $params);
     }
 

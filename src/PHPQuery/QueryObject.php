@@ -14,6 +14,7 @@ use Bit\Core\Exception\Exception;
 use \IteratorAggregate;
 use \Countable;
 use \ArrayAccess;
+use MongoDB\Driver\Query;
 
 class QueryObject implements Countable, IteratorAggregate, ArrayAccess
 {
@@ -569,7 +570,7 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
             if (!$isArray && $vNull) {
 
                 if ($set) {
-                    foreach (($node > attributes) as $n => $v)
+                    foreach (($node->attributes) as $n => $v)
                         $return[$n] = $v->value;
                     return (object)$return;
                 }
@@ -590,7 +591,7 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
         foreach ($this->nodes() as $key => $node) {
             if ($vNull) {
                 if ($isArray || $set) {
-                    foreach (($node > attributes) as $n => $v)
+                    foreach (($node->attributes) as $n => $v)
                         if ($set || in_array($n, $attr))
                             $results[$key][$n] = $v->value;
                     continue;
@@ -651,7 +652,7 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     }
     /**
      * Return joined text content.
-     * @return String
+     * @return QueryObject|$this|String
      */
     public function text($text = null)
     {
@@ -817,7 +818,7 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     /**
      * Enter description here...
      *
-     * @return phpQueryObject|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery
+     * @return QueryObject
      */
     public function addClass($className)
     {

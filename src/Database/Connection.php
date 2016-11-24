@@ -249,7 +249,7 @@ class Connection implements ConnectionInterface
      * Executes a SQL statement and returns the Statement object as result.
      *
      * @param string $sql The SQL query to execute.
-     * @return \Bit\Database\StatementInterface
+     * @return \Bit\Database\Statement\PDOStatement|\Bit\Database\StatementInterface
      */
     public function query($sql)
     {

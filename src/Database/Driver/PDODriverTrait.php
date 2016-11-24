@@ -87,7 +87,7 @@ trait PDODriverTrait
      * Prepares a sql statement to be executed
      *
      * @param string|\Bit\Database\Query $query The query to turn into a prepared statement.
-     * @return \Bit\Database\StatementInterface
+     * @return \Bit\Database\Statement\PDOStatement|\Bit\Database\StatementInterface
      */
     public function prepare($query)
     {

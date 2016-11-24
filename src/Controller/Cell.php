@@ -56,15 +56,6 @@ abstract class Cell implements \ArrayAccess, LessInterface
     public $response;
 
     /**
-     * The helpers this cell uses.
-     *
-     * This property is copied automatically when using the CellTrait
-     *
-     * @var array
-     */
-    public $helpers = [];
-
-    /**
      * The cell's action to invoke.
      *
      * @var string
