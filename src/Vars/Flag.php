@@ -52,4 +52,20 @@ abstract class Flag extends Enum{
                     array_map($call, $const)
                 );
     }
+
+    function __toString()
+    {
+        // TODO: Implement __toString() method.
+        $flags = (array)$this->get("true");
+        $ret = "";
+        $i = 0;
+        foreach ($flags as $name=>$value){
+            if(!$value)
+                continue;
+            if($i++)
+                $ret .= " | ";
+            $ret.= $name;
+        }
+        return $ret;
+    }
 }

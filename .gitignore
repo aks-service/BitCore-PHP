@@ -1,2 +1,7 @@
-/nbproject/private/
-/Site/BitQuery/
+# User specific & automatically generated files #
+#################################################
+/cache
+/vendor
+/logs
+/tmp
+/composer.lock

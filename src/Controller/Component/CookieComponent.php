@@ -292,7 +292,7 @@ class CookieComponent extends Component
     protected function _write($name, $value)
     {
         $config = $this->configKey($name);
-        $expires = new Time($config['expires']);
+        $expires = new \DateTime($config['expires']);
 
         $this->_response->cookie([
             'name' => $name,
