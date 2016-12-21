@@ -292,9 +292,11 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
      */
     protected function addDocument(\DOMDocument $dom)
     {
-        if ($dom->documentElement) {
+        if ($dom->documentElement->tagName === 'html') {
             $this->addNode($dom->documentElement);
         }
+        else
+            $this->addNodeList($dom->childNodes);
     }
 
     /**
@@ -634,6 +636,8 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
                 $node->nodeValue = '';
                 foreach ($nodes->nodes() as $newNode) {
                     $newNode = $this->document->importNode($newNode, true);
+                    if(!$newNode)
+                        continue;
                     $node->appendChild($newNode);
                 }
             }
@@ -1014,9 +1018,13 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
 
             return $source;
         }
+
         foreach ($source as $node) {
+            if($node instanceof \DOMDocumentType)
+                continue;
             $return[] = $this->document->importNode($node, true);
         }
+
         return $this->createSub($return);
     }
 
@@ -1179,6 +1187,8 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     {
         $return = [];
         foreach ($this as $node) {
+            if($node instanceof \DOMDocumentType)
+                continue;
             $return[] = $node->cloneNode(true);
         }
 

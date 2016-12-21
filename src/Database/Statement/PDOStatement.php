@@ -116,5 +116,5 @@ class PDOStatement extends StatementDecorator
             return $this->_statement->fetchAll(PDO::FETCH_OBJ);
         }
         return $this->_statement->fetchAll($type);
-    }
+    }    
 }

@@ -300,7 +300,7 @@ class StatementDecorator implements StatementInterface, Countable, IteratorAggre
     /**
      * Returns the statement object that was decorated by this class.
      *
-     * @return \Bit\Database\StatementInterface
+     * @return \PDOStatement|\Bit\Database\StatementInterface
      */
     public function getInnerStatement()
     {

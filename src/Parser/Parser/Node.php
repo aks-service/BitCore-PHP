@@ -21,7 +21,12 @@ class Node
      * @var string
      */
     protected $name = "";
-    
+
+    /**
+     * @var Node|Document|Text|Element|null
+     */
+    protected $parent = null;
+
     /**
      * @var string
      */
