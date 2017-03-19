@@ -286,6 +286,7 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     }
 
     /**
+     * TODO
      * Adds a \DOMDocument to the list of nodes.
      *
      * @param \DOMDocument $dom A \DOMDocument instance

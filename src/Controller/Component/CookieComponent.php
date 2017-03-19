@@ -2,7 +2,6 @@
 namespace Bit\Controller\Component;
 
 use Bit\Controller\Component;
-use Bit\I18n\Time;
 use Bit\Network\Request;
 use Bit\Network\Response;
 use Bit\Utility\Traits\CookieCrypt;
@@ -317,7 +316,7 @@ class CookieComponent extends Component
     protected function _delete($name)
     {
         $config = $this->configKey($name);
-        $expires = new Time('now');
+        $expires = new \DateTime('now');
 
         $this->_response->cookie([
             'name' => $name,
