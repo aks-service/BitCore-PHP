@@ -16,7 +16,7 @@ use Bit\Routing\Router;
 class LinkPlugin extends BasePlugin
 {
     protected $_defaultConfig = [
-        'selector'=>'a[href*="link_"]',
+        'selector'=>'a[href*="link_"],form[action*="link_"]',
         'explode' => 'link_',
         'OnGenerate' => null
     ];
@@ -30,7 +30,20 @@ class LinkPlugin extends BasePlugin
         $explode = $this->config('explode');
 
         $query->find($this->config('selector'))->each(function(QueryObject $node) use ($args,$explode,$full,$func){
-            $_link = explode($explode,$node->attr('href'));
+            $tag = $node->nodes()[0]->tagName;
+            $attr = null;
+            switch($tag){
+                case 'a':
+                    $attr = "href";
+                    break;
+                case 'form':
+                    $attr = "action";
+                    break;
+            }
+            if(!$attr)
+                return;
+
+            $_link = explode($explode,$node->attr($attr));
             $href = array_pop($_link);
 
             $i = strpos($href, "[");
@@ -48,7 +61,7 @@ class LinkPlugin extends BasePlugin
                 $url = "not_found";
             }
 
-            $node->attr('href',$url);
+            $node->attr($attr,$url);
 
             //$node->text($node->attr('href'));
         });
