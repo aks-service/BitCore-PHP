@@ -89,7 +89,7 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
 
     /**
      * @param null $nodes
-     * @return QueryObject|\DOMElement[]
+     * @return QueryObject|\DOMElement[]|\DOMNode[]
      */
     public function nodes($nodes = null)
     {
@@ -611,6 +611,22 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
                 @$node->setAttribute($attr, $value);
         }
         return $vNull ? $results : $this;
+    }
+
+    /**
+     * Enter description here...
+     *
+     * @return QueryObject
+     */
+    public function removeAttr($attr) {
+        foreach($this->nodes() as $node) {
+            $loop = $attr == '*' ? $node->attributes : [$attr=>0];
+
+            foreach($loop as $key=>$value) {
+                $node->removeAttribute($key);
+            }
+        }
+        return $this;
     }
 
     /**

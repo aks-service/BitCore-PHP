@@ -16,7 +16,15 @@ use Bit\Core\Vars;
 abstract class Flag extends Enum{
     function __construct($var)
     {
-        if(is_string($var) && !is_numeric($var))
+        if(is_array($var))
+        {
+            $constants = $this->getConstList();
+            $d = 0;
+            foreach ($var as $key){
+                $d |= $constants[$key];
+            }
+            $var = $d;
+        }else if(is_string($var) && !is_numeric($var))
         {
             if((strpos($var,'|') !== false))
                 $var = explode('|',$var);
@@ -37,8 +45,15 @@ abstract class Flag extends Enum{
         parent::__construct($var);
     }
 
-    public function hasFlag(int $flag){
-        return $this->_value & $flag;
+    public function hasFlag($flag)
+    {
+        if (is_numeric($flag))
+            return $this->_value & $flag;
+        elseif(is_string($flag)){
+            $const = $this->getConstList();
+            return isset($const[$flag]) ? $this->_value & $const[$flag] : 0 ;
+        }
+        return 0;
     }
 
     public function get($object = false){
