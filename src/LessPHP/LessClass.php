@@ -17,7 +17,7 @@ class LessClass extends Less
      * @param \Bit\LessPHP\Interfaces\Less|null $parent
      * @param null $doc
      */
-    function __construct(Less &$parent = null)
+    function __construct(LessInterface &$parent = null)
     {
         $this->_parent = $parent;
 
