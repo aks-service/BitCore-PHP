@@ -90,6 +90,7 @@ trait DocComment{
         list(,$text,$tags) = $matches;
         $_result = [];
 
+        static $i = 0;
         foreach (explode("\n", trim($tags)) as $tag_line) {
             $tag_line = trim($tag_line);
             if ($tag_line === '') {
@@ -102,7 +103,7 @@ trait DocComment{
                 if (isset($matches[0]) && count($matches) >= 2){
                     list($tag, $args) = $matches;
                     $tag = strtolower($tag);
-                    $_result[$tag][] = json_decode($args);
+                    $_result[$tag][$i++] = json_decode($args);
                 }
             }
         }

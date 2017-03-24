@@ -36,7 +36,11 @@ abstract class Flag extends Enum{
         }
         parent::__construct($var);
     }
-    
+
+    public function hasFlag(int $flag){
+        return $this->_value & $flag;
+    }
+
     public function get($object = false){
         if(!$object)
             return parent::get();

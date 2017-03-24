@@ -1,6 +1,8 @@
 <?php
 namespace Bit\LessPHP;
 use Bit\LessPHP\Interfaces\Less as LessInterface;
+use Bit\Utility\Hash;
+
 /**
  * Provides a registry/factory for Table objects.
  */
@@ -14,13 +16,13 @@ class LessMethod extends Less
      * @var array|null
      */
     private $param = null;
-    function __construct(LessInterface $parent,$method)
+    function __construct(LessClass $parent,\ReflectionMethod $method)
     {
+        //parent::__construct($parent);
         $this->_method = $method;
-        $this->tags    = $this->parseDocBlock($method->getDocComment());
-
+        $this->tags = Hash::merge($parent->tags, $this->parseDocBlock($method->getDocComment()));
+        /* TODO
         $params = array();
-
         foreach($method->getParameters() as $key=> &$param) {
             $params[$param->getName()] = (object)['param' => $param,
                 'type'=> ($param->getClass() ? $param->getClass()->getName() : null),
@@ -28,9 +30,7 @@ class LessMethod extends Less
                 'allowNull'=>$param->allowsNull(),
                 'pos' => $key
             ];
-        }
-
-        parent::__construct($parent);
+        }*/
     }
 
     function __debugInfo()

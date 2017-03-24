@@ -10,6 +10,7 @@ namespace Bit\LessPHP;
 
 use Bit\LessPHP\Interfaces\Less as LessInterface;
 use Bit\LessPHP\Traits\DocComment;
+use Bit\Utility\Hash;
 
 abstract class Less
 {
@@ -21,29 +22,14 @@ abstract class Less
     /**
      * @var \Bit\LessPHP\Interfaces\Less|null
      */
-    private $_parent = null;
+    protected $_parent = null;
 
     /**
      * @var array|null
      */
     public $tags = [];
 
-    /**
-     * Less constructor.
-     * @param \Bit\LessPHP\Interfaces\Less|null $parent
-     * @param null $doc
-     */
-    function __construct(LessInterface &$parent = null)
-    {
-        $this->_parent = $parent;
-        list($ClassReflector, $ParentReflector) = $parent->reflect();
-        $this->tags = array_merge($this->tags, $this->parseDocBlock($ParentReflector->getDocComment().$ClassReflector->getDocComment()));
-    }
-
-    function getMethod($func)
-    {
-        return new LessMethod($this->_parent, new \ReflectionMethod($this->_parent, $func));
-    }
+    
 
     /**
      * @param null $tag

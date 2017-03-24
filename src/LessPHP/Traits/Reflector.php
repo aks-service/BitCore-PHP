@@ -9,24 +9,26 @@ trait Reflector{
     /**
      * @var null
      */
-    protected $_reflect = null;
+    protected $_reflect = [];
+
 
     /**
-     *
+     * @return \ReflectionClass[]|null
      */
     public function reflect(){
-        $this->_reflect = [];
+        if(!empty($this->_reflect))
+            return null;
+        
         $class  = get_class($this);
-        $pClass = get_parent_class($class);
 
         if(!isset($this->_reflect[$class]))
             $this->_reflect[$class]  = new \ReflectionClass($class);
-        if(!isset($this->_reflect[$pClass]))
+
+        while($pClass = get_parent_class($class)){
             $this->_reflect[$pClass] = new \ReflectionClass($pClass);
+            $class = $pClass;
+        }
 
-        $ClassReflector = &$this->_reflect[$class];
-        $ParentReflector = &$this->_reflect[$pClass];
-
-        return [$ClassReflector,$ParentReflector];
+        return empty($this->_reflect) ? null : $this->_reflect ;
     }
 }

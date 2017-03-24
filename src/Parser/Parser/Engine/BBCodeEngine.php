@@ -215,6 +215,7 @@ class BBCodeEngine extends ParserEngine
                 break;
             case Node::TYPE_TEXT:
                 $func = $list->text;
+
                 return $func($node);
             default:
                 return $txt;

@@ -11,5 +11,8 @@ namespace Bit\LessPHP\Interfaces;
 
 interface Less
 {
+    /**
+     * \ReflectionClass[]|null
+     */
     public function reflect();
 }
