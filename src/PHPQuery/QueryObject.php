@@ -646,9 +646,16 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
         if ($html) {
             if($html instanceof QueryObject)
                 $nodes = $html;
-            else
-                $nodes = new static((is_callable($html) ? $html() : $html));
+            else{
+                $html = trim(is_callable($html) ? $html() : $html);
+                $unwrap = $html[0] != '<';
+                if($unwrap)
+                    $html = '<text>'.$html.'</text>';
+                $nodes = new static($html);
 
+                if($unwrap)
+                    $nodes = new static($nodes->find('text')->nodes()[0]->childNodes);
+            }
             foreach($this->nodes as $alreadyAdded => $node) {
                 $node->nodeValue = '';
                 foreach ($nodes->nodes() as $newNode) {
