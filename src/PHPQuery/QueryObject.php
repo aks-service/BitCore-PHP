@@ -1277,6 +1277,17 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     }
 
     /**
+     * return TagName
+     * @return string
+     */
+    function getTagName(){
+        $size = $this->count();
+        if($size > 1 || !$size)
+            throw new Exception("Todo");
+        return $this->nodes[0]->tagName;
+    }
+
+    /**
      * @param string $prefix
      * @param string $namespace
      */
