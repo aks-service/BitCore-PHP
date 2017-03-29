@@ -48,6 +48,7 @@ class ChainMessagesLoader
             }
 
             $package = $loader();
+
             if (!$package) {
                 continue;
             }
@@ -63,6 +64,7 @@ class ChainMessagesLoader
                 return $package;
             }
         }
+
         return new Package;
     }
 }

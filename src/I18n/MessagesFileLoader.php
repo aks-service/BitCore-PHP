@@ -96,6 +96,7 @@ class MessagesFileLoader
     {
         $package = new Package('default');
         $folders = $this->translationsFolders();
+
         $ext = $this->_extension;
         $file = false;
 
@@ -104,17 +105,6 @@ class MessagesFileLoader
         if ($pos !== false) {
             $fileName = substr($fileName, $pos + 1);
         }
-        foreach ($folders as $folder) {
-            $path = $folder . $fileName . ".$ext";
-            if (is_file($path)) {
-                $file = $path;
-                break;
-            }
-        }
-
-        if (!$file) {
-            return $package;
-        }
 
         $name = ucfirst($ext);
         $class = Bit::classname($name, 'I18n\Parser', 'FileParser');
@@ -122,9 +112,18 @@ class MessagesFileLoader
         if (!$class) {
             throw new RuntimeException(sprintf('Could not find class %s', "{$name}FileParser"));
         }
+        $messages = [];
+        foreach ($folders as $folder) {
+            $path = $folder . $fileName . ".$ext";
+            if (is_file($path)) {
+                $messages += (new $class)->parse($path);
+            }
+        }
+        if(empty($messages))
+            return $package;
 
-        $messages = (new $class)->parse($file);
         $package->setMessages($messages);
+
         return $package;
     }
 
@@ -139,9 +138,10 @@ class MessagesFileLoader
         $locale = Locale::parseLocale($this->_locale) + ['region' => null];
 
         $folders = [
-            implode('_', [$locale['language'], $locale['region']]),
             $locale['language']
         ];
+        if($locale['region'])
+            $folders[] =implode('_', [$locale['language'], $locale['region']]);
 
         $searchPaths = [];
 
@@ -157,8 +157,8 @@ class MessagesFileLoader
 
         // If space is not added after slash, the character after it remains lowercased
         $pluginName = Inflector::camelize(str_replace('/', '/ ', $this->_name));
-        if (Plugin::loaded($pluginName)) {
-            $basePath = Plugin::classPath($pluginName) . 'Locale' . DIRECTORY_SEPARATOR;
+        foreach (Plugin::loaded() as $plugin){
+            $basePath = Plugin::classPath($plugin) . 'Locale' . DIRECTORY_SEPARATOR;
             foreach ($folders as $folder) {
                 $searchPaths[] = $basePath . $folder . DIRECTORY_SEPARATOR;
             }

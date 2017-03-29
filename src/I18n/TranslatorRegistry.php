@@ -113,6 +113,7 @@ class TranslatorRegistry extends TranslatorLocator
         if (!isset($this->_loaders[$name])) {
             $this->registerLoader($name, $this->_partialLoader());
         }
+
         return $this->_getFromLoader($name, $locale);
     }
 

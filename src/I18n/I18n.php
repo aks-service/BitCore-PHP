@@ -120,7 +120,6 @@ class I18n
             $packages->set($name, $locale, $loader);
             return null;
         }
-
         $translators = static::translators();
 
         if ($locale) {

@@ -14,7 +14,7 @@ if (!function_exists('__')) {
         if (!$singular) {
             return null;
         }
-
+            
         $arguments = func_num_args() === 2 ? (array)$args : array_slice(func_get_args(), 1);
         return I18n::translator()->translate($singular, $arguments);
     }
