@@ -2,15 +2,16 @@
 namespace Bit\Mailer;
 
 use BadMethodCallException;
+use Bit\Controller\QueryTrait;
 use Bit\Core\Bit;
 use Bit\Core\Configure;
 use Bit\Core\Traits\StaticConfig;
 use Bit\Filesystem\File;
 use Bit\Log\Log;
 use Bit\Network\Http\FormData\Part;
+use Bit\PHPQuery\QueryObject;
 use Bit\Utility\Hash;
 use Bit\Vars\UUID;
-use Bit\View\ViewVarsTrait;
 use Closure;
 use Exception;
 use InvalidArgumentException;
@@ -38,14 +39,7 @@ class Email implements JsonSerializable, Serializable
 {
 
     use StaticConfig;
-    use ViewVarsTrait;
-
-    /**
-     * Line length - no should more - RFC 2822 - 2.1.1
-     *
-     * @var int
-     */
-    const LINE_LENGTH_SHOULD = 78;
+    use QueryTrait;
 
     /**
      * Line length - no must more - RFC 2822 - 2.1.1
@@ -213,6 +207,12 @@ class Email implements JsonSerializable, Serializable
     protected $_transport = null;
 
     /**
+     * The File off Main Html
+     * @var string
+     */
+    protected $template = 'email';
+
+    /**
      * Charset the email body is sent in
      *
      * @var string
@@ -318,12 +318,6 @@ class Email implements JsonSerializable, Serializable
             $this->_domain = php_uname('n');
         }
 
-        $this->viewBuilder()
-            ->className('Bit\View\View')
-            ->template('')
-            ->script('')
-            ->layout('default')
-            ->helpers(['Html']);
 
         if ($config === null) {
             $config = static::config('default');
@@ -334,16 +328,6 @@ class Email implements JsonSerializable, Serializable
         if (empty($this->headerCharset)) {
             $this->headerCharset = $this->charset;
         }
-    }
-
-    /**
-     * Clone ViewBuilder instance when email object is cloned.
-     *
-     * @return void
-     */
-    public function __clone()
-    {
-        $this->_viewBuilder = clone $this->viewBuilder();
     }
 
     /**
@@ -828,89 +812,6 @@ class Email implements JsonSerializable, Serializable
     }
 
     /**
-     * Template and layout
-     *
-     * @param bool|string $template Template name or null to not use
-     * @param bool|string $layout Layout name or null to not use
-     * @return array|$this
-     */
-    public function template($template = false, $layout = false,$script = false)
-    {
-        if ($template === false) {
-            return [
-                'template' => $this->viewBuilder()->template(),
-                'layout' => $this->viewBuilder()->layout()
-            ];
-        }
-        $this->viewBuilder()->template($template ?: '');
-        $this->viewBuilder()->script($script ?: ($template ?: ''));
-        if ($layout !== false) {
-            $this->viewBuilder()->layout($layout ?: false);
-        }
-        return $this;
-    }
-
-    /**
-     * View class for render
-     *
-     * @param string|null $viewClass View class name.
-     * @return string|$this
-     */
-    public function viewRender($viewClass = null)
-    {
-        if ($viewClass === null) {
-            return $this->viewBuilder()->className();
-        }
-        $this->viewBuilder()->className($viewClass);
-        return $this;
-    }
-
-    /**
-     * Variables to be set on render
-     *
-     * @param array|null $viewVars Variables to set for view.
-     * @return array|$this
-     */
-    public function viewVars($viewVars = null)
-    {
-        if ($viewVars === null) {
-            return $this->viewVars;
-        }
-        $this->set((array)$viewVars);
-        return $this;
-    }
-
-    /**
-     * Theme to use when rendering
-     *
-     * @param string|null $theme Theme name.
-     * @return string|$this
-     */
-    public function theme($theme = null)
-    {
-        if ($theme === null) {
-            return $this->viewBuilder()->theme();
-        }
-        $this->viewBuilder()->theme($theme);
-        return $this;
-    }
-
-    /**
-     * Helpers to be used in render
-     *
-     * @param array|null $helpers Helpers list.
-     * @return array|$this
-     */
-    public function helpers($helpers = null)
-    {
-        if ($helpers === null) {
-            return $this->viewBuilder()->helpers();
-        }
-        $this->viewBuilder()->helpers((array)$helpers, false);
-        return $this;
-    }
-
-    /**
      * Email format
      *
      * @param string|null $format Formatting string.
@@ -1257,11 +1158,11 @@ class Email implements JsonSerializable, Serializable
     /**
      * Send an email using the specified content, template and layout
      *
-     * @param string|array|null $content String with message or array with messages
+     * @param callable|null $content
      * @return array
      * @throws \BadMethodCallException
      */
-    public function send($content = null)
+    public function send(callable $content = null)
     {
         if (empty($this->_from)) {
             throw new BadMethodCallException('From is not specified.');
@@ -1270,11 +1171,7 @@ class Email implements JsonSerializable, Serializable
             throw new BadMethodCallException('You need specify one destination on to, cc or bcc.');
         }
 
-        if (is_array($content)) {
-            $content = implode("\n", $content) . "\n";
-        }
-
-        $this->_message = $this->_render($this->_wrap($content));
+        $this->_message = $this->_render($content);
 
         $transport = $this->transport();
         if (!$transport) {
@@ -1387,25 +1284,6 @@ class Email implements JsonSerializable, Serializable
         if (isset($config['headers'])) {
             $this->setHeaders($config['headers']);
         }
-
-        $viewBuilderMethods = [
-            'template', 'layout', 'theme'
-        ];
-        foreach ($viewBuilderMethods as $method) {
-            if (array_key_exists($method, $config)) {
-                $this->viewBuilder()->$method($config[$method]);
-            }
-        }
-
-        if (array_key_exists('helpers', $config)) {
-            $this->viewBuilder()->helpers($config['helpers'], false);
-        }
-        if (array_key_exists('viewRender', $config)) {
-            $this->viewBuilder()->className($config['viewRender']);
-        }
-        if (array_key_exists('viewVars', $config)) {
-            $this->set($config['viewVars']);
-        }
     }
 
     /**
@@ -1436,13 +1314,6 @@ class Email implements JsonSerializable, Serializable
         $this->_attachments = [];
         $this->_profile = [];
         $this->_emailPattern = self::EMAIL_PATTERN;
-
-        $this->viewBuilder()->layout('default');
-        $this->viewBuilder()->template('');
-        $this->viewBuilder()->classname('Bit\View\View');
-        $this->viewVars = [];
-        $this->viewBuilder()->theme(false);
-        $this->viewBuilder()->helpers(['Html'], false);
 
         return $this;
     }
@@ -1479,114 +1350,6 @@ class Email implements JsonSerializable, Serializable
             return $text;
         }
         return mb_convert_encoding($text, $charset, $this->_appCharset);
-    }
-
-    /**
-     * Wrap the message to follow the RFC 2822 - 2.1.1
-     *
-     * @param string $message Message to wrap
-     * @param int $wrapLength The line length
-     * @return array Wrapped message
-     */
-    protected function _wrap($message, $wrapLength = Email::LINE_LENGTH_MUST)
-    {
-        if (strlen($message) === 0) {
-            return [''];
-        }
-        $message = str_replace(["\r\n", "\r"], "\n", $message);
-        $lines = explode("\n", $message);
-        $formatted = [];
-        $cut = ($wrapLength == Email::LINE_LENGTH_MUST);
-
-        foreach ($lines as $line) {
-            if (empty($line) && $line !== '0') {
-                $formatted[] = '';
-                continue;
-            }
-            if (strlen($line) < $wrapLength) {
-                $formatted[] = $line;
-                continue;
-            }
-            if (!preg_match('/<[a-z]+.*>/i', $line)) {
-                $formatted = array_merge(
-                    $formatted,
-                    explode("\n", wordwrap($line, $wrapLength, "\n", $cut))
-                );
-                continue;
-            }
-
-            $tagOpen = false;
-            $tmpLine = $tag = '';
-            $tmpLineLength = 0;
-            for ($i = 0, $count = strlen($line); $i < $count; $i++) {
-                $char = $line[$i];
-                if ($tagOpen) {
-                    $tag .= $char;
-                    if ($char === '>') {
-                        $tagLength = strlen($tag);
-                        if ($tagLength + $tmpLineLength < $wrapLength) {
-                            $tmpLine .= $tag;
-                            $tmpLineLength += $tagLength;
-                        } else {
-                            if ($tmpLineLength > 0) {
-                                $formatted = array_merge(
-                                    $formatted,
-                                    explode("\n", wordwrap(trim($tmpLine), $wrapLength, "\n", $cut))
-                                );
-                                $tmpLine = '';
-                                $tmpLineLength = 0;
-                            }
-                            if ($tagLength > $wrapLength) {
-                                $formatted[] = $tag;
-                            } else {
-                                $tmpLine = $tag;
-                                $tmpLineLength = $tagLength;
-                            }
-                        }
-                        $tag = '';
-                        $tagOpen = false;
-                    }
-                    continue;
-                }
-                if ($char === '<') {
-                    $tagOpen = true;
-                    $tag = '<';
-                    continue;
-                }
-                if ($char === ' ' && $tmpLineLength >= $wrapLength) {
-                    $formatted[] = $tmpLine;
-                    $tmpLineLength = 0;
-                    continue;
-                }
-                $tmpLine .= $char;
-                $tmpLineLength++;
-                if ($tmpLineLength === $wrapLength) {
-                    $nextChar = $line[$i + 1];
-                    if ($nextChar === ' ' || $nextChar === '<') {
-                        $formatted[] = trim($tmpLine);
-                        $tmpLine = '';
-                        $tmpLineLength = 0;
-                        if ($nextChar === ' ') {
-                            $i++;
-                        }
-                    } else {
-                        $lastSpace = strrpos($tmpLine, ' ');
-                        if ($lastSpace === false) {
-                            continue;
-                        }
-                        $formatted[] = trim(substr($tmpLine, 0, $lastSpace));
-                        $tmpLine = substr($tmpLine, $lastSpace + 1);
-
-                        $tmpLineLength = strlen($tmpLine);
-                    }
-                }
-            }
-            if (!empty($tmpLine)) {
-                $formatted[] = $tmpLine;
-            }
-        }
-        $formatted[] = '';
-        return $formatted;
     }
 
     /**
@@ -1688,12 +1451,11 @@ class Email implements JsonSerializable, Serializable
      * @param array $content Content to render
      * @return array Email body ready to be sent
      */
-    protected function _render($content)
+    protected function _render(callable $call = null)
     {
         $this->_textMessage = $this->_htmlMessage = '';
 
-        $content = implode("\n", $content);
-        $rendered = $this->_renderTemplates($content);
+        $rendered = $this->_renderTemplates($call);
 
         $this->_createBoundary();
         $msg = [];
@@ -1786,6 +1548,22 @@ class Email implements JsonSerializable, Serializable
     }
 
     /**
+     * Sets template.
+     *
+     * @param string|null $template Template name or null to not use.
+     * @return $this|template
+     */
+    public function template($template = null)
+    {
+        if(!$template)
+            return $this->template;
+
+        $this->template = $template;
+
+        return $this;
+    }
+
+    /**
      * Build and set all the view properties needed to render the templated emails.
      * If there is no template set, the $content will be returned in a hash
      * of the text content types for the email.
@@ -1793,40 +1571,20 @@ class Email implements JsonSerializable, Serializable
      * @param string $content The content passed in from send() in most cases.
      * @return array The rendered content with html and text keys.
      */
-    protected function _renderTemplates($content)
+    protected function _renderTemplates(callable $call = null)
     {
         $types = $this->_getTypes();
         $rendered = [];
-        $template = $this->viewBuilder()->template();
-        if (empty($template)) {
-            foreach ($types as $type) {
-                $rendered[$type] = $this->_encodeString($content, $this->charset);
-            }
-            return $rendered;
-        }
 
-        $View = $this->createView();
-
-        list($templatePlugin) = pluginSplit($View->template());
-        list($layoutPlugin) = pluginSplit($View->layout());
-        if ($templatePlugin) {
-            $View->plugin = $templatePlugin;
-        } elseif ($layoutPlugin) {
-            $View->plugin = $layoutPlugin;
-        }
-
-        if ($View->get('content') === null) {
-            $View->set('content', $content);
-        }
+        $render = $this->getTemplate($this->template);
+        $call($render);
 
         foreach ($types as $type) {
-            $View->hasRendered = false;
-            $View->templatePath('Email' . DIRECTORY_SEPARATOR . $type);
-            $View->layoutPath('Email' . DIRECTORY_SEPARATOR . $type);
-
-            $render = $View->render();
-            $render = str_replace(["\r\n", "\r"], "\n", $render);
-            $rendered[$type] = $this->_encodeString($render, $this->charset);
+            if($type == 'text') {
+                $render->find('style')->remove();
+                $render = $render->cleanText();
+            }
+            $rendered[$type] = $this->_encodeString($render->{$type}(), $this->charset);
         }
 
         foreach ($rendered as $type => $content) {
@@ -1890,8 +1648,6 @@ class Email implements JsonSerializable, Serializable
             '_attachments', '_messageId', '_headers', '_appCharset', 'viewVars', 'charset', 'headerCharset'
         ];
 
-        $array = ['viewConfig' => $this->viewBuilder()->jsonSerialize()];
-
         foreach ($properties as $property) {
             $array[$property] = $this->{$property};
         }
@@ -1903,38 +1659,11 @@ class Email implements JsonSerializable, Serializable
             }
         });
 
-        array_walk_recursive($array['viewVars'], [$this, '_checkViewVars']);
-
         return array_filter($array, function ($i) {
             return !is_array($i) && strlen($i) || !empty($i);
         });
     }
 
-    /**
-     * Iterates through hash to clean up and normalize.
-     *
-     * @param mixed $item Reference to the view var value.
-     * @param string $key View var key.
-     * @return void
-     */
-    protected function _checkViewVars(&$item, $key)
-    {
-        if ($item instanceof Exception) {
-            $item = (string)$item;
-        }
-
-        if (is_resource($item) ||
-            $item instanceof Closure ||
-            $item instanceof PDO
-        ) {
-            throw new RuntimeException(sprintf(
-                'Failed serializing the `%s` %s in the `%s` view var',
-                is_resource($item) ? get_resource_type($item) : get_class($item),
-                is_resource($item) ? 'resource' : 'object',
-                $key
-            ));
-        }
-    }
 
     /**
      * Configures an email instance object from serialized config.
@@ -1944,11 +1673,6 @@ class Email implements JsonSerializable, Serializable
      */
     public function createFromArray($config)
     {
-        if (isset($config['viewConfig'])) {
-            $this->viewBuilder()->createFromArray($config['viewConfig']);
-            unset($config['viewConfig']);
-        }
-
         foreach ($config as $property => $value) {
             $this->{$property} = $value;
         }
@@ -1964,11 +1688,6 @@ class Email implements JsonSerializable, Serializable
     public function serialize()
     {
         $array = $this->jsonSerialize();
-        array_walk_recursive($array, function (&$item, $key) {
-            if ($item instanceof SimpleXmlElement) {
-                $item = json_decode(json_encode((array)$item), true);
-            }
-        });
         return serialize($array);
     }
 
@@ -1981,5 +1700,110 @@ class Email implements JsonSerializable, Serializable
     public function unserialize($data)
     {
         return $this->createFromArray(unserialize($data));
+    }
+
+    /**
+     * Wrap the message to follow the RFC 2822 - 2.1.1
+     *
+     * @param string $message Message to wrap
+     * @param int $wrapLength The line length
+     * @return array Wrapped message
+     */
+    protected function _wrap($message, $wrapLength = Email::LINE_LENGTH_MUST)
+    {
+        if (strlen($message) === 0) {
+            return [''];
+        }
+        $message = str_replace(["\r\n", "\r"], "\n", $message);
+        $lines = explode("\n", $message);
+        $formatted = [];
+        $cut = ($wrapLength == Email::LINE_LENGTH_MUST);
+        foreach ($lines as $line) {
+            if (empty($line) && $line !== '0') {
+                $formatted[] = '';
+                continue;
+            }
+            if (strlen($line) < $wrapLength) {
+                $formatted[] = $line;
+                continue;
+            }
+            if (!preg_match('/<[a-z]+.*>/i', $line)) {
+                $formatted = array_merge(
+                    $formatted,
+                    explode("\n", wordwrap($line, $wrapLength, "\n", $cut))
+                );
+                continue;
+            }
+            $tagOpen = false;
+            $tmpLine = $tag = '';
+            $tmpLineLength = 0;
+            for ($i = 0, $count = strlen($line); $i < $count; $i++) {
+                $char = $line[$i];
+                if ($tagOpen) {
+                    $tag .= $char;
+                    if ($char === '>') {
+                        $tagLength = strlen($tag);
+                        if ($tagLength + $tmpLineLength < $wrapLength) {
+                            $tmpLine .= $tag;
+                            $tmpLineLength += $tagLength;
+                        } else {
+                            if ($tmpLineLength > 0) {
+                                $formatted = array_merge(
+                                    $formatted,
+                                    explode("\n", wordwrap(trim($tmpLine), $wrapLength, "\n", $cut))
+                                );
+                                $tmpLine = '';
+                                $tmpLineLength = 0;
+                            }
+                            if ($tagLength > $wrapLength) {
+                                $formatted[] = $tag;
+                            } else {
+                                $tmpLine = $tag;
+                                $tmpLineLength = $tagLength;
+                            }
+                        }
+                        $tag = '';
+                        $tagOpen = false;
+                    }
+                    continue;
+                }
+                if ($char === '<') {
+                    $tagOpen = true;
+                    $tag = '<';
+                    continue;
+                }
+                if ($char === ' ' && $tmpLineLength >= $wrapLength) {
+                    $formatted[] = $tmpLine;
+                    $tmpLineLength = 0;
+                    continue;
+                }
+                $tmpLine .= $char;
+                $tmpLineLength++;
+                if ($tmpLineLength === $wrapLength) {
+                    $nextChar = $line[$i + 1];
+                    if ($nextChar === ' ' || $nextChar === '<') {
+                        $formatted[] = trim($tmpLine);
+                        $tmpLine = '';
+                        $tmpLineLength = 0;
+                        if ($nextChar === ' ') {
+                            $i++;
+                        }
+                    } else {
+                        $lastSpace = strrpos($tmpLine, ' ');
+                        if ($lastSpace === false) {
+                            continue;
+                        }
+                        $formatted[] = trim(substr($tmpLine, 0, $lastSpace));
+                        $tmpLine = substr($tmpLine, $lastSpace + 1);
+                        $tmpLineLength = strlen($tmpLine);
+                    }
+                }
+            }
+            if (!empty($tmpLine)) {
+                $formatted[] = $tmpLine;
+            }
+        }
+        $formatted[] = '';
+        return $formatted;
     }
 }

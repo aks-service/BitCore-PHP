@@ -695,12 +695,17 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
         $return = '';
         $i = count($this);
         foreach ($this->nodes() as $node) {
-            $txt = $node->textContent;
+            $txt = trim($node->textContent);
             if ($i > 1 && $txt)
                 $txt .= "\n";
+
             $return .= $txt;
         }
         return $return;
+    }
+
+    public function cleanText(){
+        return $this->filterRelativeXPath('/html/body//text()[not(ancestor::script) andnot(normalize-space(.) = "")]');
     }
 
     /**
