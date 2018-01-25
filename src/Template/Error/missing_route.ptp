@@ -1,0 +1,25 @@
+<?php
+use Bit\Routing\Router;
+use Bit\Error\Debugger;
+
+$this->setTitle(__d('bit','Missing Route'));
+$this->loadTemplate("Error/missing_route");
+
+$attributes = $error->getAttributes();
+$this['[data-message]']->html(h($message));
+$file = $this['[data-file]'];
+
+$file->append("<p>None of the currently connected routes match the provided parameters.
+Add a matching route to config". DS . "routes.php</p>");
+
+if (!empty($attributes['context']))
+   $file->append("<p>The passed context was:</p>")->append("<pre>".Debugger::exportVar($attributes['context'])."</pre>");
+
+$routes = $this['[data-routes]'];
+
+foreach (Router::routes() as $route){
+    $routes->append(sprintf('<tr><td width="25%%">%s</td><td>%s</td><td width="20%%">%s</td></tr>',
+        $route->template,
+        Debugger::exportVar($route->defaults),
+        Debugger::exportVar($route->options)));
+}

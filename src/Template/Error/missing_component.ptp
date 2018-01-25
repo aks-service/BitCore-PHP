@@ -1,0 +1,43 @@
+<?php
+use Bit\Core\Plugin;
+use Bit\Core\Configure;
+
+$namespace = Configure::read('App.namespace');
+if (!empty($plugin)) {
+    $namespace = str_replace('/', '\\', $plugin);
+}
+
+$pluginPath = Configure::read('App.paths.plugins.0');
+$pluginDot = empty($plugin) ? null : $plugin . '.';
+if (empty($plugin)) {
+    $filePath = APP_DIR . DIRECTORY_SEPARATOR;
+}
+if (!empty($plugin) && Plugin::loaded($plugin)) {
+    $filePath = Plugin::classPath($plugin);
+}
+if (!empty($plugin) && !Plugin::loaded($plugin)) {
+    $filePath = $pluginPath . h($plugin) . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR;
+}
+
+$this->loadTemplate("Error/error400");
+$this->setTitle(__d('bit',"Missing Component"));
+$this['[data-title]']->append('<span>'.__d('bit', '<em>{0}</em> could not be found.', h($pluginDot . $class)).'</span>');
+
+//Todo 'plugin_class_error' $pluginPath
+
+$msg = $this['[data-message]'];
+
+$code = <<<PHP
+<?php
+namespace {$namespace}\Controller\Component;
+
+use Bit\Controller\Component;
+
+class {$class} extends Component
+{
+
+}
+PHP;
+
+$msg->append(__d('bit','Create the class <em>{0}</em> below in file: {0}', h($class), $filePath . 'Controller' . DIRECTORY_SEPARATOR . 'Component' . DIRECTORY_SEPARATOR . h($class) . '.php'));
+$msg->append('<div class="card my-1">'.highlight_string($code,true).'</div>');

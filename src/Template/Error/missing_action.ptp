@@ -1,0 +1,62 @@
+<?php
+
+use Bit\Core\Configure;
+use Bit\Utility\Inflector;
+use Bit\Core\Plugin;
+$this->loadTemplate("Error/error400");
+
+$namespace = Configure::read('App.namespace');
+if (!empty($plugin)) {
+    $namespace = str_replace('/', '\\', $plugin);
+}
+$prefixNs = '';
+if (!empty($prefix)) {
+    $prefix = array_map('\Bit\Utility\Inflector::camelize', explode('/', $prefix));
+    $prefixNs = '\\' . implode('\\', $prefix);
+    $prefix = implode(DIRECTORY_SEPARATOR, $prefix) . DIRECTORY_SEPARATOR;
+}
+
+// Controller MissingAction support
+if (isset($controller)) {
+    $baseClass = $namespace . '\Controller\AppController';
+    $extends = 'AppController';
+    $type = 'Controller';
+    $class = Inflector::camelize($controller);
+}
+// Mailer MissingActionException support
+if (isset($mailer)) {
+    $baseClass = 'Bit\Mailer\Mailer';
+    $type = $extends = 'Mailer';
+    $class = Inflector::camelize($mailer);
+}
+
+if (empty($plugin)) {
+    $path = APP_DIR . DIRECTORY_SEPARATOR . $type . DIRECTORY_SEPARATOR . $prefix . h($class) . '.php' ;
+} else {
+    $path = Plugin::classPath($plugin) . $type . DIRECTORY_SEPARATOR . $prefix . h($class) . '.php';
+}
+
+
+$this->setTitle(__d('bit', 'Missing Method in {0}', h($class)));
+$this['[data-title]']->append('<span>'.__d('bit', 'The action <em>{0}</em> is not defined in <em>{1}</em>',  h($action), h($class)).'</span>');
+
+
+$code = <<<PHP
+<?php
+namespace {$namespace}\\{$type}{$prefixNs};
+
+use {$baseClass};
+
+class {$class} extends {$extends}
+{
+
+    public function {$action}()
+    {
+
+    }
+}
+PHP;
+
+$this['[data-message]']
+    ->append(__d('bit','Create <em>{0}::{1}()</em> in file: {2}.', h($class),  h($action), $path))
+    ->append('<div class="card my-1 p-2">'.highlight_string($code,true).'</div>');

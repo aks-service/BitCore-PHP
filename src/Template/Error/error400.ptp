@@ -1,0 +1,5 @@
+<?php
+$this->setTitle($message);
+$this->loadTemplate("Error/error400");
+$this['[data-message]']->text(__d('bit', 'The requested address {0} was not found on this server.', "<strong>'{$url}'</strong>") );
+$this['[data-title]']->text(h($message));

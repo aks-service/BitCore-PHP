@@ -2,6 +2,7 @@
 namespace Bit\Error;
 
 use Bit\Controller\Controller;
+use Bit\Controller\Exception\MissingTemplateException;
 use Bit\Core\Bit;
 use Bit\Core\Configure;
 use Bit\Core\Exception\Exception as BitException;
@@ -13,7 +14,6 @@ use Bit\Network\Response;
 use Bit\Routing\DispatcherFactory;
 use Bit\Routing\Router;
 use Bit\Utility\Inflector;
-use Bit\View\Exception\MissingTemplateException;
 use Exception;
 use PDOException;
 
@@ -172,14 +172,12 @@ class ExceptionRenderer
             ]);
         }
 
-
-        var_dump($viewVars);
-        die('Todo');
         $this->controller->set($viewVars);
 
         if ($unwrapped instanceof BitException && $isDebug) {
             $this->controller->set($unwrapped->getAttributes());
         }
+
         return $this->_outputMessage($template);
     }
 
@@ -308,7 +306,8 @@ class ExceptionRenderer
     protected function _outputMessage($template)
     {
         try {
-            $this->controller->render($template);
+            $this->controller->setAction($template);
+            $this->controller->render();
             return $this->_shutdown();
         } catch (MissingTemplateException $e) {
             $attributes = $e->getAttributes();
@@ -323,6 +322,8 @@ class ExceptionRenderer
             }
             return $this->_outputMessageSafe('error500');
         } catch (Exception $e) {
+            var_dump($e);
+            die();
             return $this->_outputMessageSafe('error500');
         }
     }
@@ -336,17 +337,8 @@ class ExceptionRenderer
      */
     protected function _outputMessageSafe($template)
     {
-        $helpers = ['Form', 'Html'];
-        $this->controller->helpers = $helpers;
-        $builder = $this->controller->viewBuilder();
-        $builder->helpers($helpers, false)
-            ->layoutPath('')
-            ->templatePath('Error');
-        $view = $this->controller->createView();
-
-        $this->controller->response->body($view->render($template, 'error'));
-        $this->controller->response->type('html');
-        return $this->controller->response;
+        $this->controller->helpers =  ['Form', 'Html'];
+        return $this->_outputMessage($template);
     }
 
     /**

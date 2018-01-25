@@ -1,0 +1,5 @@
+<?php
+$this->setTitle(__d('bit','Missing Datasource Configuration'));
+$this->loadTemplate("Error/error400");
+$this['[data-message]']
+    ->append(isset($name) ? __d('bit','The datasource configuration <em>{0}</em> was not found in {1}' ,h($name),'config'.DS.'app.php') : h($message));

@@ -31,6 +31,6 @@ class LessClass extends Less
 
     function getMethod($func)
     {
-        return new LessMethod($this, new \ReflectionMethod($this->_parent, $func));
+        return new LessMethod($this, method_exists($this->_parent, $func) ? new \ReflectionMethod($this->_parent, $func) : null);
     }
 }

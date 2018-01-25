@@ -1,0 +1,17 @@
+<?php
+use Bit\Error\Debugger;
+$this->setTitle(__d('bit','Database Error'));
+$this->loadTemplate("Error/error500");
+$msg = $this['[data-message]'];
+
+$msg->append(h($message))->append('<br>')
+        ->append('<p class="notice">
+                    If you are using SQL keywords as table column names, you can enable identifier
+                    quoting for your database connection in config/app.php.
+                 </p>');
+if (!empty($error->queryString))
+    $msg->append('<p class="notice"><strong>SQL Query: </strong></p><pre>'.h($error->queryString).'</pre>');
+
+if (!empty($error->params))
+    $msg->append('<p class="notice"><strong>SQL Query Params: </strong></p><pre>'. h(Debugger::dump($error->params)).'</pre>');
+

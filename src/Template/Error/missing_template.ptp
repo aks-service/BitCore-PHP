@@ -1,0 +1,21 @@
+<?php
+use Bit\Utility\Inflector;
+
+$this->setTitle(__d('bit',"Missing Template"));
+$this->loadTemplate("Error/error400");
+
+$ul = new \Bit\PHPQuery\QueryObject('<ul/>');
+$li = new \Bit\PHPQuery\QueryObject('<li/>');
+
+$paths = $this->paths($this->plugin);
+foreach ($paths as $path){
+    if (strpos($path, CORE_PATH) !== false) {
+        continue;
+    }
+    $li->clone()->html(sprintf('%s%s', h($path), h($template)))->appendTo($ul);
+}
+
+$this['[data-message]']
+    ->append(sprintf('The template %s</em> was not found.', h($template)))->append('<br>')
+    ->append('<p>'.sprintf(__d('bit','Confirm you have created the file: "%s"'), h($template)).__d('bit','in one of the following paths:').'</p>')
+    ->append($ul);

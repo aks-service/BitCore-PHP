@@ -84,7 +84,9 @@ class Controller implements \ArrayAccess, EventListenerInterface, EventDispatche
     use LogTrait;
     use RequestActionTrait;
 
+    use CellTrait;
     use QueryTrait;
+
 
     /**
      * The File off Main Html
@@ -264,6 +266,22 @@ class Controller implements \ArrayAccess, EventListenerInterface, EventDispatche
         return $this->{$prop};
     }
 
+
+    /**
+     * @param $cell
+     * @param string|null $append
+     * @param string|null $func
+     * @return mixed
+     */
+    public function loadCell($cell, $data = [],$append = null, $func = null,callable $call = null) {
+        $append =$append ? : static::APPEND ;
+        if(is_callable($func))
+            $call = $func;
+        $func = $func && !is_callable($func)? $func  : static::APPEND_FUNC ;
+        $object = $append instanceof QueryObject? $append : $this->page->find($append);
+        return $object->$func($this->cell($cell,$data)->render($call));
+    }
+
     /**
      * Sets the request objects and configures a number of controller properties
      * based on the contents of the request. Controller acts as a proxy for certain View variables
@@ -320,7 +338,7 @@ class Controller implements \ArrayAccess, EventListenerInterface, EventDispatche
      */
     protected function _runAction(string $action, array $params)
     {
-        $this->method = $this->less()->getMethod($action);
+        $this->method = @$this->less()->getMethod($action);
         //Todo more Test
         if ($this->autoRender)
         {
@@ -545,6 +563,19 @@ class Controller implements \ArrayAccess, EventListenerInterface, EventDispatche
 
     public function beforeRunAction(Event $event)
     {
+        if($this->autoRender) {
+            array_map(function ($params) {
+                call_user_func_array([$this, "setTitle"], is_array($params) ? $params : [$params]);
+            }, $this->method->getTag('maintitle'));
+
+            array_map(function ($params) {
+                call_user_func_array([$this, "loadCell"], $params);
+            }, $this->method->getTag('cell'));
+
+            array_map(function ($params) {
+                call_user_func_array([$this, "addTitle"], $params);
+            }, $this->method->getTag('title'));
+        }
         return null;
     }
 

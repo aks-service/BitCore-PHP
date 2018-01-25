@@ -8,14 +8,23 @@
 
 namespace Bit\Controller;
 
+use Bit\Controller\Exception\MissingScriptException;
 use Bit\Core\Bit;
 use Bit\LessPHP\Traits\LessPHP;
 use Bit\PHPQuery\QueryObject;
 use Bit\Traits\Statics;
+use Bit\Controller\Exception\MissingTemplateException;
 
 trait QueryTrait
 {
     use LessPHP;
+
+    /**
+     * Variables for the view
+     *
+     * @var array
+     */
+    public $viewVars = [];
 
     /**
      * Automatically set to the name of a plugin.
@@ -72,12 +81,12 @@ trait QueryTrait
      *
      * @return QueryObject|null
      */
-    public function getTemplate($namespace) {
+    public function getTemplate($template) {
         $dirs = static::paths($this->plugin);
         $lang = Bit::getPreferredLanguage();
         $file = null;
         foreach($dirs as $dir){
-            $dir = phi($dir.DS.$namespace.'.html');
+            $dir = phi($dir.DS.$template.'.html');
             if (!is_file($file = $dir->dirname . DS . $lang . DS . $dir->basename)){
                 if(!is_file($file = $dir->dirname . DS . $dir->basename)){
                     $file = null;
@@ -88,9 +97,11 @@ trait QueryTrait
                 return new QueryObject(file_get_contents($file)) ;
         }
 
-        var_dump($dirs);
+        throw new MissingTemplateException([
+            'template' => $template.'.html',
+            'dirs'   => $dirs,
+        ]);
 
-        die('Todo Exception GetTemplate '.$namespace);
         return null;
     }
 
@@ -146,5 +157,81 @@ trait QueryTrait
      */
     public function offsetUnset($offset) {
         $this->page->find($offset)->remove();
+    }
+
+    /**
+     * Clear Title and Set new One Be CareFull
+     * @param string the new Title
+     * @return void
+     */
+    public function setTitle($title) {
+        $this->page->find('title')->text($title);
+    }
+
+    /**
+     * Append Title at the End
+     * @param string $title the new Title
+     * @param string $key Delemiter default  »
+     * @return void
+     */
+    public function addTitle($title, $key = ' » ',$func = 'append') {
+        $_title = $this->page->find('title')->text();
+        $this->page->find('title')->text($func === 'append' ? $_title.$key . $title : $title.$key.$_title );
+    }
+
+
+
+
+
+    /**
+     * Saves a variable or an associative array of variables for use inside a template.
+     *
+     * @param string|array $name A string or an array of data.
+     * @param mixed $value Value in case $name is a string (which then works as the key).
+     *   Unused if $name is an associative array, otherwise serves as the values to $name's keys.
+     * @return $this
+     */
+    public function set($name, $value = null)
+    {
+        if (is_array($name)) {
+            if (is_array($value)) {
+                $data = array_combine($name, $value);
+            } else {
+                $data = $name;
+            }
+        } else {
+            $data = [$name => $value];
+        }
+        $this->viewVars = $data + $this->viewVars;
+        return $this;
+    }
+
+    public function script($template){
+        $dirs = static::paths($this->plugin);
+
+        $lang = Bit::getPreferredLanguage();
+        $file = null;
+        foreach($dirs as $_dir){
+            $dir = phi($_dir.DS.$template.'.ptp');
+
+            if (!is_file($file = $dir->dirname . DS . $lang . DS . $dir->basename) && !is_file($file = $dir->dirname . DS . $dir->basename)){
+                    $file = null;
+            }
+            if($file){
+                extract($this->viewVars);
+                try {
+                    include $file;
+                }catch(\Exception $e){
+                    var_dump($e);
+                    die();
+                }
+                return;
+            }
+        }
+        throw new MissingScriptException([
+            'script' => $template,
+            'dirs'   => $dirs,
+        ]);
+
     }
 }

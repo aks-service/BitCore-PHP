@@ -11,6 +11,7 @@ namespace Bit\PHPQuery;
 //Iterator, Countable, ArrayAccess
 
 use Bit\Core\Exception\Exception;
+use Bit\PHPQuery\Exception\MissingElementException;
 use \IteratorAggregate;
 use \Countable;
 use \ArrayAccess;
@@ -293,6 +294,11 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
      */
     protected function addDocument(\DOMDocument $dom)
     {
+        if(!$dom->documentElement)
+            throw new MissingElementException([
+
+            ]);
+
         if ($dom->documentElement->tagName === 'html') {
             $this->addNode($dom->documentElement);
         }
@@ -940,6 +946,16 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
         $sub = $sub->filter($selector);
 
         return (bool)count($sub);
+    }
+    /**
+     * Enter description here..
+     * @return QueryObject
+     */
+    public function print_r($var){
+        ob_start();
+        var_dump($var);
+        $result = ob_get_clean();
+        $this->append(sprintf('<pre class="pr">%s</pre>', $result));
     }
 
     /**

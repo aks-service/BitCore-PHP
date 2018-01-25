@@ -1,0 +1,9 @@
+<?php
+
+$pluginDot = empty($plugin) ? null : $plugin . '.';
+$this->setTitle(__d('bit','Missing Datasource'));
+$this->loadTemplate("Error/error400");
+$this['[data-message]']
+    ->append('<span>'.__d('bit','Datasource class <em>{0}</em> could not be found.',h($pluginDot . $class)).'</span>')
+    ->append(isset($message)? h($message) : '');
+

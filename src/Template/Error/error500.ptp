@@ -1,0 +1,4 @@
+<?php
+$this->setTitle($message);
+$this->loadTemplate("Error/error500");
+$this['[data-message]']->text(h($message));

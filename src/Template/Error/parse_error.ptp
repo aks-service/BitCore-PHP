@@ -1,0 +1,9 @@
+<?php
+$this->setTitle(__d('bit','Parse Error'));
+$this->loadTemplate("Error/error400");
+$this['[data-message]']
+    ->append(h($error->getMessage()))->append('<br>')
+    ->append('<strong>File</strong>')
+    ->append(h($error->getFile()))->append('<br>')
+    ->append('<strong>Line</strong>')
+    ->append(h($error->getLine()))->append('<br>');
