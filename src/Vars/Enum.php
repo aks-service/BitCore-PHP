@@ -89,4 +89,9 @@ abstract class Enum {
 
         return $constants[$name];
     }
+
+    public function __toString()
+    {
+        return static::getNamebyValue($this->_value);
+    }
 }

@@ -1,5 +1,5 @@
 <?php
-$this->setTitle(__d('bit','Fatal Error'));
+$this->setTitle(__d('bit','Runtime Error'));
 $this->loadTemplate("Error/error500");
 $this['[data-message]']
     ->append(h($error->getMessage()))->append('<br>')

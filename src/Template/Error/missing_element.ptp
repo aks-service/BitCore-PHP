@@ -1,7 +1,7 @@
 <?php
 use Bit\Utility\Inflector;
 
-$this->setTitle(__d('bit',"Missing Template"));
+$this->setTitle(__d('bit',"Missing Element"));
 $this->loadTemplate("Error/error400");
 
 $ul = new \Bit\PHPQuery\QueryObject('<ul/>');
