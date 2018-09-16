@@ -11,18 +11,20 @@
  * @license       https://opensource.org/licenses/mit-license.php MIT License
  */
 
-namespace Bit\Console\Exception;
-
-use Bit\Core\Exception\Exception;
+namespace Bit\Core;
 
 /**
- * Used when a shell cannot be found.
+ * Class PathInfo
  *
+ * pathinfo() as Object
+ *
+ * @param string|null $dirname
+ * @param string|null $basename
+ * @param string|null $extension
+ * @param string|null $filename
+ *
+ * @package Bit\Core
  */
-class MissingShellException extends Exception
-{
-    /**
-     * {@inheritDoc}
-     */
-    protected $_messageTemplate = 'Shell class for "%s" could not be found.';
+class PathInfo{
+
 }

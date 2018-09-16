@@ -1,10 +1,14 @@
 <?php
 /**
- * Project  Frostmourne HP (3.3.5/4.3.4 Full Support)
+ * BitCore-PHP:  Rapid Development Framework (https://phpcore.bitcoding.eu)
  *
- *  @link         http://www.frostmourne.eu/
- *  @copyright    Copyright (c) 2009 - 2016 Frostmourne
- *  @version      v4.0.1a
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @link          https://phpcore.bitcoding.eu BitCore-PHP Project
+ * @since         0.8.0
+ * @license       https://opensource.org/licenses/mit-license.php MIT License
  */
 
 namespace Bit\Parser;
@@ -75,11 +79,11 @@ class Parser
         $registry = static::registry();
 
         if (empty(static::$_config[$name]['className'])) {
+            //TODO
             throw new InvalidArgumentException(
                 sprintf('The "%s" Parser configuration does not exist.', $name)
             );
         }
-
 
         $config = static::$_config[$name];
         $registry->load($name, $config);
@@ -106,17 +110,35 @@ class Parser
         return $registry->{$config};
     }
 
+    /**
+     * parse text to Document
+     * @param string $text
+     * @param string $config
+     * @return Document
+     */
     public static function parse(string $text, $config = 'default')
     {
         $engine = static::engine($config);
         return $engine->parse($text);
     }
 
+    /**
+     * Render Document
+     * @param Document $document
+     * @param string $config
+     * @return string
+     */
     public static function render(Document $document, $config = 'default')    {
         $engine = static::engine($config);
         return $engine->render($document);
     }
 
+    /**
+     * combine parse and renderer
+     * @param string $text
+     * @param string $config
+     * @return string
+     */
     public static function simple(string $text, $config = 'default'){
         $engine = static::engine($config);
         return $engine->render($engine->parse($text));

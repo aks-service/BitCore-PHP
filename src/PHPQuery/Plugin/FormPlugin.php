@@ -1,9 +1,14 @@
 <?php
 /**
- * Created by PhpStorm.
- * User: bitcoding
- * Date: 09.06.16
- * Time: 22:08
+ * BitCore-PHP:  Rapid Development Framework (https://phpcore.bitcoding.eu)
+ *
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @link          https://phpcore.bitcoding.eu BitCore-PHP Project
+ * @since         0.2.0
+ * @license       https://opensource.org/licenses/mit-license.php MIT License
  */
 
 namespace Bit\PHPQuery\Plugin;
@@ -16,11 +21,21 @@ use Bit\PHPQuery\QueryObject;
 use Bit\Utility\Hash;
 use Bit\View\Helper\SecureFieldTokenTrait;
 
-
+/**
+ * Class FormPlugin
+ *
+ * TODO
+ * @package Bit\PHPQuery\Plugin
+ */
 class FormPlugin extends BasePlugin
 {
     use SecureFieldTokenTrait;
 
+    /**
+     * Default Config
+     *
+     * @var array
+     */
     protected $_defaultConfig = [
         'selector' => 'form',
         'template' => [
@@ -37,8 +52,9 @@ class FormPlugin extends BasePlugin
      * the hidden input tags generated for the Security Component. This is
      * especially useful to set HTML5 attributes like 'form'.
      *
-     * @param array $fields If set specifies the list of fields to use when
+     * @param QueryObject $qrx If set specifies the list of fields to use when
      *    generating the hash, else $this->fields is being used.
+     * @param Request $request
      * @param array $secureAttributes will be passed as HTML attributes into the hidden
      *    input elements generated for the Security Component.
      * @return string A hidden input field with a security hash, or empty string when
@@ -119,6 +135,13 @@ class FormPlugin extends BasePlugin
         }
     }
 
+    /**
+     * Invoke Form plugin
+     *
+     * @param QueryObject $query
+     * @param $_args
+     * @return QueryObject
+     */
     public function invoke(QueryObject $query, $_args)
     {
         //

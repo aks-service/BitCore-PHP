@@ -1,4 +1,16 @@
 <?php
+/**
+ * BitCore-PHP:  Rapid Development Framework (https://phpcore.bitcoding.eu)
+ *
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @link          https://phpcore.bitcoding.eu BitCore-PHP Project
+ * @since         0.7.0
+ * @license       https://opensource.org/licenses/mit-license.php MIT License
+ */
+
 namespace Bit\Database\Statement;
 
 use Bit\Database\StatementInterface;
@@ -264,14 +276,14 @@ class StatementDecorator implements StatementInterface, Countable, IteratorAggre
             return;
         }
 
-        $annonymousParams = is_int(key($params)) ? true : false;
+        $anonymousParams = is_int(key($params)) ? true : false;
         $offset = 1;
         foreach ($params as $index => $value) {
             $type = null;
             if (isset($types[$index])) {
                 $type = $types[$index];
             }
-            if ($annonymousParams) {
+            if ($anonymousParams) {
                 $index += $offset;
             }
             $this->bindValue($index, $value, $type);

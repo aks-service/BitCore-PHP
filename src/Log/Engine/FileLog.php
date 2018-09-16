@@ -1,4 +1,16 @@
 <?php
+/**
+ * BitCore-PHP:  Rapid Development Framework (https://phpcore.bitcoding.eu)
+ *
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @link          https://phpcore.bitcoding.eu BitCore-PHP Project
+ * @since         0.7.0
+ * @license       https://opensource.org/licenses/mit-license.php MIT License
+ */
+
 namespace Bit\Log\Engine;
 
 use Bit\Core\Configure;
@@ -44,21 +56,21 @@ class FileLog extends BaseLog
     /**
      * Path to save log files on.
      *
-     * @var string
+     * @var string|null
      */
     protected $_path = null;
 
     /**
      * The name of the file to save logs into.
      *
-     * @var string
+     * @var string|null
      */
     protected $_file = null;
 
     /**
      * Max file size, used for log file rotation.
      *
-     * @var int
+     * @var int|null
      */
     protected $_size = null;
 
@@ -117,8 +129,8 @@ class FileLog extends BaseLog
 
         $pathname = $this->_path . $filename;
         $mask = $this->_config['mask'];
-        if (empty($mask)) {
-            return file_put_contents($pathname, $output, FILE_APPEND);
+        if (!$mask) {
+            return (bool)file_put_contents($pathname, $output, FILE_APPEND);
         }
 
         $exists = file_exists($pathname);
@@ -134,7 +146,7 @@ class FileLog extends BaseLog
             $selfError = false;
         }
 
-        return $result;
+        return (bool)$result;
     }
 
     /**
@@ -147,7 +159,7 @@ class FileLog extends BaseLog
     {
         $debugTypes = ['notice', 'info', 'debug'];
 
-        if (!empty($this->_file)) {
+        if ($this->_file) {
             $filename = $this->_file;
         } elseif ($level === 'error' || $level === 'warning') {
             $filename = 'error.log';

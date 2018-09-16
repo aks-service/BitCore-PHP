@@ -1,4 +1,16 @@
 <?php
+/**
+ * BitCore-PHP:  Rapid Development Framework (https://phpcore.bitcoding.eu)
+ *
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @link          https://phpcore.bitcoding.eu BitCore-PHP Project
+ * @since         0.7.0
+ * @license       https://opensource.org/licenses/mit-license.php MIT License
+ */
+
 namespace Bit\Cache\Engine;
 
 use Bit\Cache\CacheEngine;
@@ -13,6 +25,8 @@ class NullEngine extends CacheEngine
 
     /**
      * {@inheritDoc}
+     * @param array $config
+     * @return bool
      */
     public function init(array $config = [])
     {
@@ -21,6 +35,8 @@ class NullEngine extends CacheEngine
 
     /**
      * {@inheritDoc}
+     * @param null $expires
+     * @return bool|void
      */
     public function gc($expires = null)
     {
@@ -29,6 +45,9 @@ class NullEngine extends CacheEngine
 
     /**
      * {@inheritDoc}
+     * @param string $key
+     * @param mixed $value
+     * @return bool|void
      */
     public function write($key, $value)
     {
@@ -36,6 +55,8 @@ class NullEngine extends CacheEngine
 
     /**
      * {@inheritDoc}
+     * @param array $data
+     * @return array|void
      */
     public function writeMany($data)
     {
@@ -43,6 +64,9 @@ class NullEngine extends CacheEngine
 
     /**
      * {@inheritDoc}
+     *
+     * @param string $key
+     * @return bool|mixed
      */
     public function read($key)
     {
@@ -51,6 +75,8 @@ class NullEngine extends CacheEngine
 
     /**
      * {@inheritDoc}
+     * @param array $keys
+     * @return array
      */
     public function readMany($keys)
     {
@@ -59,6 +85,9 @@ class NullEngine extends CacheEngine
 
     /**
      * {@inheritDoc}
+     * @param string $key
+     * @param int $offset
+     * @return bool|int|void
      */
     public function increment($key, $offset = 1)
     {
@@ -66,6 +95,9 @@ class NullEngine extends CacheEngine
 
     /**
      * {@inheritDoc}
+     * @param string $key
+     * @param int $offset
+     * @return bool|int|void
      */
     public function decrement($key, $offset = 1)
     {
@@ -73,6 +105,8 @@ class NullEngine extends CacheEngine
 
     /**
      * {@inheritDoc}
+     * @param string $key
+     * @return bool|void
      */
     public function delete($key)
     {
@@ -80,6 +114,8 @@ class NullEngine extends CacheEngine
 
     /**
      * {@inheritDoc}
+     * @param array $keys
+     * @return array
      */
     public function deleteMany($keys)
     {
@@ -88,6 +124,8 @@ class NullEngine extends CacheEngine
 
     /**
      * {@inheritDoc}
+     * @param bool $check
+     * @return bool
      */
     public function clear($check)
     {
@@ -96,6 +134,8 @@ class NullEngine extends CacheEngine
 
     /**
      * {@inheritDoc}
+     * @param string $group
+     * @return bool
      */
     public function clearGroup($group)
     {

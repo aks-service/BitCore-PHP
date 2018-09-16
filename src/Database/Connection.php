@@ -1,4 +1,16 @@
 <?php
+/**
+ * BitCore-PHP:  Rapid Development Framework (https://phpcore.bitcoding.eu)
+ *
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @link          https://phpcore.bitcoding.eu BitCore-PHP Project
+ * @since         0.7.0
+ * @license       https://opensource.org/licenses/mit-license.php MIT License
+ */
+
 namespace Bit\Database;
 
 use Bit\Core\Bit;
@@ -232,18 +244,6 @@ class Connection implements ConnectionInterface
         return $statement;
     }
 
-    /**
-     * Compiles a Query object into a SQL string according to the dialect for this
-     * connection's driver
-     *
-     * @param \Bit\Database\Query $query The query to be compiled
-     * @param \Bit\Database\ValueBinder $generator The placeholder generator to use
-     * @return string
-     */
-    public function compileQuery(Query $query, ValueBinder $generator)
-    {
-        return $this->driver()->compileQuery($query, $generator)[1];
-    }
 
     /**
      * Executes a SQL statement and returns the Statement object as result.
@@ -279,55 +279,6 @@ class Connection implements ConnectionInterface
         }
 
         return $this->_schemaCollection = new SchemaCollection($this);
-    }
-
-    /**
-     * Executes an INSERT query on the specified table.
-     *
-     * @param string $table the table to insert values in
-     * @param array $data values to be inserted
-     * @param array $types list of associative array containing the types to be used for casting
-     * @return \Bit\Database\StatementInterface
-     */
-    public function insert($table, array $data, array $types = [])
-    {
-        $columns = array_keys($data);
-        return $this->newQuery()->insert($columns, $types)
-            ->into($table)
-            ->values($data)
-            ->execute();
-    }
-
-    /**
-     * Executes an UPDATE statement on the specified table.
-     *
-     * @param string $table the table to update rows from
-     * @param array $data values to be updated
-     * @param array $conditions conditions to be set for update statement
-     * @param array $types list of associative array containing the types to be used for casting
-     * @return \Bit\Database\StatementInterface
-     */
-    public function update($table, array $data, array $conditions = [], $types = [])
-    {
-        return $this->newQuery()->update($table)
-            ->set($data, $types)
-            ->where($conditions, $types)
-            ->execute();
-    }
-
-    /**
-     * Executes a DELETE statement on the specified table.
-     *
-     * @param string $table the table to delete rows from
-     * @param array $conditions conditions to be set for delete statement
-     * @param array $types list of associative array containing the types to be used for casting
-     * @return \Bit\Database\StatementInterface
-     */
-    public function delete($table, $conditions = [], $types = [])
-    {
-        return $this->newQuery()->delete($table)
-            ->where($conditions, $types)
-            ->execute();
     }
 
     /**
@@ -511,6 +462,10 @@ class Connection implements ConnectionInterface
      *   $connection->newQuery()->delete('users')->execute();
      * });
      * ```
+     *
+     * @param callable $callback
+     * @return bool|mixed
+     * @throws Exception
      */
     public function transactional(callable $callback)
     {
@@ -542,6 +497,10 @@ class Connection implements ConnectionInterface
      *   $connection->newQuery()->delete('users')->execute();
      * });
      * ```
+     *
+     * @param callable $callback
+     * @return mixed
+     * @throws Exception
      */
     public function disableConstraints(callable $callback)
     {
@@ -620,6 +579,9 @@ class Connection implements ConnectionInterface
 
     /**
      * {@inheritDoc}
+     *
+     * @param null $enable
+     * @return bool
      */
     public function logQueries($enable = null)
     {
@@ -631,6 +593,9 @@ class Connection implements ConnectionInterface
 
     /**
      * {@inheritDoc}
+     *
+     * @param null $instance
+     * @return QueryLogger|object
      */
     public function logger($instance = null)
     {

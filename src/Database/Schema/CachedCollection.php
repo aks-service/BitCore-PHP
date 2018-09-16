@@ -1,8 +1,20 @@
 <?php
+/**
+ * BitCore-PHP:  Rapid Development Framework (https://phpcore.bitcoding.eu)
+ *
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @link          https://phpcore.bitcoding.eu BitCore-PHP Project
+ * @since         0.7.0
+ * @license       https://opensource.org/licenses/mit-license.php MIT License
+ */
+
 namespace Bit\Database\Schema;
 
 use Bit\Cache\Cache;
-use Bit\Datasource\ConnectionInterface;
+use Bit\Database\ConnectionInterface;
 
 /**
  * Extends the schema collection class to provide caching
@@ -22,7 +34,7 @@ class CachedCollection extends Collection
     /**
      * Constructor.
      *
-     * @param \Bit\Datasource\ConnectionInterface $connection The connection instance.
+     * @param \Bit\Database\ConnectionInterface $connection The connection instance.
      * @param string|bool $cacheKey The cache key or boolean false to disable caching.
      */
     public function __construct(ConnectionInterface $connection, $cacheKey = true)
@@ -34,6 +46,10 @@ class CachedCollection extends Collection
     /**
      * {@inheritDoc}
      *
+     * @param string $name
+     * @param array $options
+     * @return Table|mixed
+     * @throws \Bit\Database\Exception
      */
     public function describe($name, array $options = [])
     {

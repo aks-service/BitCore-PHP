@@ -1,15 +1,21 @@
 <?php
-
-/* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * BitCore-PHP:  Rapid Development Framework (https://phpcore.bitcoding.eu)
+ *
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @link          https://phpcore.bitcoding.eu BitCore-PHP Project
+ * @since         0.4.0
+ * @license       https://opensource.org/licenses/mit-license.php MIT License
  */
 
 namespace Bit\LessPHP\Traits;
 
 /**
  * Class DocComment
+ * Simple splitter for Doc Comments
  * @package Bit\LessPHP\Traits
  */
 trait DocComment{
@@ -112,6 +118,7 @@ trait DocComment{
     }
 
     /**
+     * parseCommentBlock
      * @param $block
      * @return mixed[]
      */

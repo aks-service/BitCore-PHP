@@ -1,4 +1,16 @@
 <?php
+/**
+ * BitCore-PHP:  Rapid Development Framework (https://phpcore.bitcoding.eu)
+ *
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @link          https://phpcore.bitcoding.eu BitCore-PHP Project
+ * @since         0.7.0
+ * @license       https://opensource.org/licenses/mit-license.php MIT License
+ */
+
 namespace Bit\Core\Configure\Engine;
 
 use Bit\Core\Configure\ConfigEngineInterface;
@@ -8,6 +20,19 @@ use Bit\Core\Exception\Exception;
 /**
  * JSON engine allows Configure to load configuration values from
  * files containing JSON strings.
+ * * An example JSON file would look like::
+ *
+ * ```
+ * {
+ *     "debug": false,
+ *     "App": {
+ *         "namespace": "MyApp"
+ *     },
+ *     "Security": {
+ *         "salt": "its-secret"
+ *     }
+ * }
+ * ```
  */
 class JsonConfig implements ConfigEngineInterface
 {
@@ -54,7 +79,7 @@ class JsonConfig implements ConfigEngineInterface
         $values = json_decode(file_get_contents($file), true);
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new Exception(sprintf(
-                "Error parsing JSON string fetched from config file \"%s.json\": %s",
+                'Error parsing JSON string fetched from config file "%s.json": %s',
                 $key,
                 json_last_error_msg()
             ));

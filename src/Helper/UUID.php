@@ -1,4 +1,16 @@
 <?php
+/**
+ * BitCore-PHP:  Rapid Development Framework (https://phpcore.bitcoding.eu)
+ *
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @link          https://phpcore.bitcoding.eu BitCore-PHP Project
+ * @since         0.1.0
+ * @license       https://opensource.org/licenses/mit-license.php MIT License
+ */
+
 namespace Bit\Helper;
 /**
  * The following class generates VALID RFC 4211 COMPLIANT Universally Unique IDentifiers (UUID) version 3, 4 and 5.
@@ -10,16 +22,26 @@ namespace Bit\Helper;
  * 
  *
  * @author      Andrew Moore <http://www.php.net/uniqid>
- * 
- * @link        http://www.lessphp.eu/
- * @link        http://www.bitcoding.eu/
- * @license     http://www.bitcoding.eu/license/
- * 
- * @version     0.1.0 (Breadcrumb): UUID.php
- * @package     Helper
  */
 class UUID {
 
+    /**
+     * A version 3 UUID is namespace generated.
+     *
+     * To determine the version 3 UUID corresponding to a given namespace
+     * and name, the UUID of the namespace is transformed to a string
+     * of bytes, concatenated with the input name, then hashed with MD5,
+     * yielding 128 bits. Six or seven bits are then replaced by fixed
+     * values, the 4-bit version (e.g. 0011 for version 3),
+     * and the 2- or 3-bit UUID "variant" (e.g. 10 indicating a
+     * RFC 4122 UUIDs, or 110 indicating a legacy Microsoft GUID).
+     * ince 6 or 7 bits are thus predetermined, only 121 or 122 bits
+     * contribute to the uniqueness of the UUID.
+     *
+     * @param $namespace
+     * @param $name
+     * @return bool|string
+     */
     public static function v3($namespace, $name) {
         if (!self::is_valid($namespace))
             return false;
@@ -55,6 +77,21 @@ class UUID {
         );
     }
 
+    /**
+     * A version 4 UUID is randomly generated.
+     *
+     * As in other UUIDs, four bits are used to indicate version 4,
+     * and 2 or 3 bits to indicate the variant (10 or 110 for variants 1
+     * and 2, respectively). Thus, for variant 1 (that is, most UUIDs)
+     * a random version 4 UUID will have 6 predetermined variant and
+     * version bits, leaving 122 bits for the randomly-generated part,
+     * for a total of 2122, or 5.3x1036 (5.3 undecillion) possible
+     * version 4 variant 1 UUIDs. There are half as many possible
+     * version 4 variant 2 UUIDs (legacy GUIDs) because there is one
+     * less random bit available, 3 bits being consumed for the variant.
+     *
+     * @return string
+     */
     public static function v4() {
         return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
                 // 32 bits for "time_low"
@@ -73,6 +110,18 @@ class UUID {
         );
     }
 
+    /**
+     * A version 5 UUID is namespace generated.
+     *
+     * SHA1 is used instead of MD5.
+     * Since SHA1 generates 160-bit digests,
+     * the digest is truncated to 128-bits before
+     * the version and variant bits are replaced.
+     *
+     * @param $namespace
+     * @param $name
+     * @return bool|string
+     */
     public static function v5($namespace, $name) {
         if (!self::is_valid($namespace))
             return false;
@@ -108,6 +157,12 @@ class UUID {
         );
     }
 
+    /**
+     * IS a Valid UUID
+     *
+     * @param $uuid
+     * @return bool
+     */
     public static function is_valid($uuid) {
         return preg_match('/^\{?[0-9a-f]{8}\-?[0-9a-f]{4}\-?[0-9a-f]{4}\-?' .
                         '[0-9a-f]{4}\-?[0-9a-f]{12}\}?$/i', $uuid) === 1;

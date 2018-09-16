@@ -1,4 +1,16 @@
 <?php
+/**
+ * BitCore-PHP:  Rapid Development Framework (https://phpcore.bitcoding.eu)
+ *
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @link          https://phpcore.bitcoding.eu BitCore-PHP Project
+ * @since         0.7.0
+ * @license       https://opensource.org/licenses/mit-license.php MIT License
+ */
+
 namespace Bit\Log;
 
 use Bit\Core\Traits\StaticConfig;
@@ -399,7 +411,7 @@ class Log
      */
     public static function emergency($message, $context = [])
     {
-        return static::write('emergency', $message, $context);
+        return static::write(__FUNCTION__, $message, $context);
     }
 
     /**
@@ -415,7 +427,7 @@ class Log
      */
     public static function alert($message, $context = [])
     {
-        return static::write('alert', $message, $context);
+        return static::write(__FUNCTION__, $message, $context);
     }
 
     /**
@@ -431,7 +443,7 @@ class Log
      */
     public static function critical($message, $context = [])
     {
-        return static::write('critical', $message, $context);
+        return static::write(__FUNCTION__, $message, $context);
     }
 
     /**
@@ -447,7 +459,7 @@ class Log
      */
     public static function error($message, $context = [])
     {
-        return static::write('error', $message, $context);
+        return static::write(__FUNCTION__, $message, $context);
     }
 
     /**
@@ -463,7 +475,7 @@ class Log
      */
     public static function warning($message, $context = [])
     {
-        return static::write('warning', $message, $context);
+        return static::write(__FUNCTION__, $message, $context);
     }
 
     /**
@@ -479,7 +491,7 @@ class Log
      */
     public static function notice($message, $context = [])
     {
-        return static::write('notice', $message, $context);
+        return static::write(__FUNCTION__, $message, $context);
     }
 
     /**
@@ -495,7 +507,7 @@ class Log
      */
     public static function debug($message, $context = [])
     {
-        return static::write('debug', $message, $context);
+        return static::write(__FUNCTION__, $message, $context);
     }
 
     /**
@@ -511,6 +523,6 @@ class Log
      */
     public static function info($message, $context = [])
     {
-        return static::write('info', $message, $context);
+        return static::write(__FUNCTION__, $message, $context);
     }
 }

@@ -1,4 +1,16 @@
 <?php
+/**
+ * BitCore-PHP:  Rapid Development Framework (https://phpcore.bitcoding.eu)
+ *
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @link          https://phpcore.bitcoding.eu BitCore-PHP Project
+ * @since         0.7.0
+ * @license       https://opensource.org/licenses/mit-license.php MIT License
+ */
+
 namespace Bit\Database\Driver;
 
 use Bit\Database\Dialect\SqliteDialectTrait;
@@ -8,6 +20,9 @@ use Bit\Database\Statement\PDOStatement;
 use Bit\Database\Statement\SqliteStatement;
 use PDO;
 
+/**
+ * Class Sqlite
+ */
 class Sqlite extends Driver
 {
 
@@ -25,6 +40,7 @@ class Sqlite extends Driver
         'password' => null,
         'database' => ':memory:',
         'encoding' => 'utf8',
+        'mask' => 0644,
         'flags' => [],
         'init' => [],
     ];
@@ -46,8 +62,16 @@ class Sqlite extends Driver
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
         ];
 
+        $databaseExists = file_exists($config['database']);
+
         $dsn = "sqlite:{$config['database']}";
         $this->_connect($dsn, $config);
+
+        if (!$databaseExists && $config['database'] != ':memory:') {
+            //@codingStandardsIgnoreStart
+            @chmod($config['database'], $config['mask']);
+            //@codingStandardsIgnoreEnd
+        }
 
         if (!empty($config['init'])) {
             foreach ((array)$config['init'] as $command) {

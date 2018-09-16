@@ -1,4 +1,16 @@
 <?php
+/**
+ * BitCore-PHP:  Rapid Development Framework (https://phpcore.bitcoding.eu)
+ *
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @link          https://phpcore.bitcoding.eu BitCore-PHP Project
+ * @since         0.7.0
+ * @license       https://opensource.org/licenses/mit-license.php MIT License
+ */
+
 namespace Bit\Database\Schema;
 
 /**
@@ -11,6 +23,9 @@ class SqlserverSchema extends BaseSchema
 
     /**
      * {@inheritDoc}
+     *
+     * @param array $config
+     * @return array
      */
     public function listTablesSql($config)
     {
@@ -25,6 +40,10 @@ class SqlserverSchema extends BaseSchema
 
     /**
      * {@inheritDoc}
+     *
+     * @param string $tableName
+     * @param array $config
+     * @return array
      */
     public function describeColumnSql($tableName, $config)
     {
@@ -127,6 +146,9 @@ class SqlserverSchema extends BaseSchema
 
     /**
      * {@inheritDoc}
+     *
+     * @param Table $table
+     * @param array $row
      */
     public function convertColumnDescription(Table $table, $row)
     {
@@ -155,6 +177,10 @@ class SqlserverSchema extends BaseSchema
 
     /**
      * {@inheritDoc}
+     *
+     * @param string $tableName
+     * @param array $config
+     * @return array
      */
     public function describeIndexSql($tableName, $config)
     {
@@ -178,6 +204,10 @@ class SqlserverSchema extends BaseSchema
 
     /**
      * {@inheritDoc}
+     *
+     * @param Table $table
+     * @param array $row
+     * @throws \Bit\Database\Exception
      */
     public function convertIndexDescription(Table $table, $row)
     {
@@ -216,6 +246,10 @@ class SqlserverSchema extends BaseSchema
 
     /**
      * {@inheritDoc}
+     *
+     * @param string $tableName
+     * @param array $config
+     * @return array
      */
     public function describeForeignKeySql($tableName, $config)
     {
@@ -237,6 +271,10 @@ class SqlserverSchema extends BaseSchema
 
     /**
      * {@inheritDoc}
+     *
+     * @param Table $table
+     * @param array $row
+     * @throws \Bit\Database\Exception
      */
     public function convertForeignKeyDescription(Table $table, $row)
     {
@@ -253,6 +291,9 @@ class SqlserverSchema extends BaseSchema
 
     /**
      * {@inheritDoc}
+     *
+     * @param null|string $on
+     * @return string
      */
     protected function _foreignOnClause($on)
     {
@@ -262,6 +303,9 @@ class SqlserverSchema extends BaseSchema
 
     /**
      * {@inheritDoc}
+     *
+     * @param string $clause
+     * @return null|string
      */
     protected function _convertOnClause($clause)
     {
@@ -280,6 +324,10 @@ class SqlserverSchema extends BaseSchema
 
     /**
      * {@inheritDoc}
+     *
+     * @param Table $table
+     * @param string $name
+     * @return string
      */
     public function columnSql(Table $table, $name)
     {
@@ -366,6 +414,9 @@ class SqlserverSchema extends BaseSchema
 
     /**
      * {@inheritDoc}
+     *
+     * @param Table $table
+     * @return array
      */
     public function addConstraintSql(Table $table)
     {
@@ -385,6 +436,9 @@ class SqlserverSchema extends BaseSchema
 
     /**
      * {@inheritDoc}
+     *
+     * @param Table $table
+     * @return array
      */
     public function dropConstraintSql(Table $table)
     {
@@ -405,6 +459,10 @@ class SqlserverSchema extends BaseSchema
 
     /**
      * {@inheritDoc}
+     *
+     * @param Table $table
+     * @param string $name
+     * @return string
      */
     public function indexSql(Table $table, $name)
     {
@@ -423,6 +481,10 @@ class SqlserverSchema extends BaseSchema
 
     /**
      * {@inheritDoc}
+     *
+     * @param Table $table
+     * @param string $name
+     * @return string
      */
     public function constraintSql(Table $table, $name)
     {
@@ -465,6 +527,12 @@ class SqlserverSchema extends BaseSchema
 
     /**
      * {@inheritDoc}
+     *
+     * @param Table $table
+     * @param array $columns
+     * @param array $constraints
+     * @param array $indexes
+     * @return array
      */
     public function createTableSql(Table $table, $columns, $constraints, $indexes)
     {
@@ -481,6 +549,9 @@ class SqlserverSchema extends BaseSchema
 
     /**
      * {@inheritDoc}
+     *
+     * @param Table $table
+     * @return array
      */
     public function truncateTableSql(Table $table)
     {

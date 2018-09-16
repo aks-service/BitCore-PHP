@@ -1,21 +1,25 @@
 <?php
-
-/* 
- * BitCore (tm) : Bit Development Framework
- * Copyright (c) BitCore
- * 
+/**
+ * BitCore-PHP:  Rapid Development Framework (https://phpcore.bitcoding.eu)
+ *
  * Licensed under The MIT License
  * For full copyright and license information, please see the LICENSE.txt
  * Redistributions of files must retain the above copyright notice.
- * 
- * @copyright     BitCore
- * @license       http://www.opensource.org/licenses/mit-license.php MIT License
+ *
+ * @link          https://phpcore.bitcoding.eu BitCore-PHP Project
+ * @since         0.1.0
+ * @license       https://opensource.org/licenses/mit-license.php MIT License
  */
+
 namespace Bit\Core\Enum;
 use Bit\Vars\Enum;
 
-class Mode extends Enum{
 /**
+ * ENUM Mode
+ * @package Bit\Core\Enum
+ */
+class Mode extends Enum{
+    /**
      * PHP-Runtime
      */
     const RUNTIME = 0x0000;

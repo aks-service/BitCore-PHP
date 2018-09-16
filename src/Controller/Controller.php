@@ -1,16 +1,25 @@
 <?php
+/**
+ * BitCore-PHP:  Rapid Development Framework (https://phpcore.bitcoding.eu)
+ *
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @link          https://phpcore.bitcoding.eu BitCore-PHP Project
+ * @since         0.7.0
+ * @license       https://opensource.org/licenses/mit-license.php MIT License
+ */
+
 namespace Bit\Controller;
 
 use Bit\Controller\Exception\MissingActionException;
 
 use Bit\Core\Bit;
-use Bit\LessPHP\Less;
-use Bit\LessPHP\LessMethod;
 use Bit\Event\Event;
 use Bit\Event\EventDispatcherInterface;
 use Bit\Event\EventDispatcherTrait;
 use Bit\Event\EventListenerInterface;
-use Bit\LessPHP\Traits\LessPHP;
 use Bit\LessPHP\Interfaces\Less as LessInterface;
 use Bit\Log\LogTrait;
 use Bit\Network\Request;
@@ -163,6 +172,10 @@ class Controller implements \ArrayAccess, EventListenerInterface, EventDispatche
      */
     public $passedArgs = [];
 
+    /**
+     * Hold Vars
+     * @var array
+     */
     public $vars = [];
 
 
@@ -268,9 +281,24 @@ class Controller implements \ArrayAccess, EventListenerInterface, EventDispatche
 
 
     /**
+     * Load a Cell
+     * ### Example:
+     *
+     * ```
+     * $this->loadCell("ExceptionStackTrace::index",[$this->viewVars['error']],'body','prepend');
+     * ```
+     *
+     * ```
+     * $func =function(QueryObject){
+     * };
+     *
+     * $this->loadCell("ExceptionStackTrace::index",[$this->viewVars['error']],'body','prepend',$func);
+     * ```
      * @param $cell
-     * @param string|null $append
-     * @param string|null $func
+     * @param array $data
+     * @param null $append
+     * @param null $func
+     * @param callable|null $call
      * @return mixed
      */
     public function loadCell($cell, $data = [],$append = null, $func = null,callable $call = null) {
@@ -332,6 +360,7 @@ class Controller implements \ArrayAccess, EventListenerInterface, EventDispatche
     }
 
     /**
+     * Run Controller Action with less Methods
      * @param string $action
      * @param array $params
      * @return Response|mixed The resulting response.
@@ -561,6 +590,13 @@ class Controller implements \ArrayAccess, EventListenerInterface, EventDispatche
         return null;
     }
 
+    /**
+     * Called before the controller action run. You can use this method to configure and customize components
+     * or perform logic that needs to happen before each controller action.
+     *
+     * @param Event $event
+     * @return null
+     */
     public function beforeRunAction(Event $event)
     {
         if($this->autoRender) {

@@ -1,4 +1,16 @@
 <?php
+/**
+ * BitCore-PHP:  Rapid Development Framework (https://phpcore.bitcoding.eu)
+ *
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @link          https://phpcore.bitcoding.eu BitCore-PHP Project
+ * @since         0.2.0
+ * @license       https://opensource.org/licenses/mit-license.php MIT License
+ */
+
 namespace Bit\PHPQuery;
 
 use Bit\Core\Bit;
@@ -9,6 +21,10 @@ use Bit\PHPQuery\Exception\ExistMethodException;
 use Bit\PHPQuery\Exception\MissingPluginException;
 use Symfony\Component\CssSelector\CssSelectorConverter;
 
+/**
+ * Class PHPQueryFactory
+ * @package Bit\PHPQuery
+ */
 class PHPQueryFactory{
 
     /**
@@ -26,6 +42,7 @@ class PHPQueryFactory{
     protected static $_selectorCache = null;
 
     /**
+     * Selector Like jQuery Selector
      * @param null $selector
      * @return null|CssSelectorConverter
      */
@@ -40,6 +57,8 @@ class PHPQueryFactory{
     }
 
     /**
+     * convert Selector to xPath DOMDocument
+     *
      * @param $selector
      * @return string
      */
@@ -62,7 +81,7 @@ class PHPQueryFactory{
     /**
      * Get the component registry for this controller.
      *
-     * @param \Bit\PHPQuery\PluginRegistry|null $components Plugin registry.
+     * @param \Bit\PHPQuery\PluginRegistry|null $_plugins Plugin registry.
      *
      * @return \Bit\PHPQuery\PluginRegistry
      */
@@ -94,6 +113,8 @@ class PHPQueryFactory{
      * Loads a plugin and optionally loads bootstrapping,
      * routing files or runs an initialization function.
      *
+     * @param $plugin
+     * @param array $config
      */
     public static function load($plugin, array $config = [])
     {
@@ -168,15 +189,29 @@ class PHPQueryFactory{
     }
     /**
      * Holds a list of all loaded plugins and their configuration
-     * PHPQueryFactory::method([
-     *    'test'=> function(QueryObject $nodes,$attr = null, $value = null) {
-     *             }
-     * ]);
      *
      * @var array
      */
     protected static $_methods = [];
 
+    /**
+     * Register method for QueryObject
+     *
+     * ```
+     * PHPQueryFactory::method([
+     *    'test'=> function(QueryObject $nodes,$attr = null, $value = null) {
+     *             }
+     * ]);
+     *
+     * PHPQueryFactory::method('test',function(QueryObject $nodes,$attr = null, $value = null) {
+     * });
+     *
+     * ```
+     * @param null $method
+     * @param null $call
+     * @param bool $overwrite
+     * @return mixed|null
+     */
     public static function method($method = null,$call = null,$overwrite = false){
         if($call === null && is_string($method))
             return isset(static::$_methods[$method]) ? static::$_methods[$method] : null;
@@ -197,12 +232,15 @@ class PHPQueryFactory{
         static::$_methods[$method] = $call;
     }
 
+    /**
+     * Debug Info Factory
+     * @return array
+     */
     function __debugInfo()
     {
         return [
             'methods' => static::$_methods
         ];
-        // TODO: Implement __debugInfo() method.
     }
 }
 

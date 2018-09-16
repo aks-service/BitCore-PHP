@@ -1,4 +1,20 @@
 <?php
+/**
+ * BitCore-PHP:  Rapid Development Framework (https://phpcore.bitcoding.eu)
+ *
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @link          https://phpcore.bitcoding.eu BitCore-PHP Project
+ * @since         0.7.0
+ * @license       https://opensource.org/licenses/mit-license.php MIT License
+ */
+
+namespace Bit\Core\Exception;
+use RuntimeException;
+use Bit\Traits\Translate;
+
 
 /**
  * BException class
@@ -13,23 +29,19 @@
  *
  * By default, BException looks for a message file by calling
  * {@link getErrorMessageFile()} method, which uses Bit::CLASS_HTML_EXT
- * 
+ *
  * file located under "self::LANG_DIR" folder
  * @author      Bitcoding <bitcoding@bitcoding.eu>
  * @copyright   Copyright &copy; 2009-2014, Bitcoding
  * @link        http://www.lessphp.eu/
  * @link        http://www.bitcoding.eu/
  * @license     http://www.bitcoding.eu/license/
- * 
+ *
  * @version     0.1.0 (Breadcrumb): BitException.php
  * @since       0.1.0
  * @package     System/Exception/BException
  * @category    Exception
  */
-namespace Bit\Core\Exception;
-use RuntimeException;
-use Bit\Traits\Translate;
-
 class Exception extends RuntimeException {
     use Translate;
     
@@ -56,7 +68,7 @@ class Exception extends RuntimeException {
     protected $_responseHeaders = null;
 
     /**
-     * Constructor.
+     * Exception constructor.
      *
      * Allows you to create exceptions that are treated as framework errors and disabled
      * when debug = 0.
@@ -64,6 +76,7 @@ class Exception extends RuntimeException {
      * @param string|array $message Either the string of the error message, or an array of attributes
      *   that are made available in the view, and sprintf()'d into Exception::$_messageTemplate
      * @param int $code The code of the error, is also the HTTP status code for the error.
+     * @param int $error
      * @param \Exception|null $previous the previous exception.
      */
     public function __construct($message, $code = null, $error = 500, $previous = null)
@@ -75,7 +88,12 @@ class Exception extends RuntimeException {
         }
         parent::__construct($message, $error, $previous);
     }
-    //XXX:Todo
+
+    /**
+     * {@inheritDoc}
+     *
+     * @return string
+     */
     public function getFileMessage() {
         return __DIR__.'/Exception.lng';
     }

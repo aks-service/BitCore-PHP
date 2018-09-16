@@ -1,9 +1,14 @@
 <?php
 /**
- * Created by PhpStorm.
- * User: bitcoding
- * Date: 10.11.16
- * Time: 14:46
+ * BitCore-PHP:  Rapid Development Framework (https://phpcore.bitcoding.eu)
+ *
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @link          https://phpcore.bitcoding.eu BitCore-PHP Project
+ * @since         0.7.0
+ * @license       https://opensource.org/licenses/mit-license.php MIT License
  */
 
 namespace Bit\Controller;
@@ -15,6 +20,10 @@ use Bit\PHPQuery\QueryObject;
 use Bit\Traits\Statics;
 use Bit\Controller\Exception\MissingTemplateException;
 
+/**
+ * Trait QueryTrait
+ * @package Bit\Controller
+ */
 trait QueryTrait
 {
     use LessPHP;
@@ -34,11 +43,13 @@ trait QueryTrait
     public $plugin = null;
 
     /**
+     * method holder
      * @var \Bit\LessPHP\LessMethod|null
      */
     public $method     = null;
 
     /**
+     * page holder like document in javascript
      * @var QueryObject|null
      */
     protected $page = null;
@@ -50,6 +61,14 @@ trait QueryTrait
      */
     protected static $_paths = [];
 
+    /**
+     * Return Template Paths from
+     *
+     * @param null $plugin
+     * @param bool $cached
+     * @param string $path
+     * @return array
+     */
     function paths($plugin = null, $cached = true,$path = "Template")
     {
         if ($cached === true) {
@@ -78,7 +97,9 @@ trait QueryTrait
 
 
     /**
+     * Get Template File
      *
+     * @param $template
      * @return QueryObject|null
      */
     public function getTemplate($template) {
@@ -106,6 +127,8 @@ trait QueryTrait
     }
 
     /**
+     * Load Template in Document
+     *
      * @param $template
      * @param string|null $append
      * @param string|null $func
@@ -123,7 +146,8 @@ trait QueryTrait
     /**
      * Returns whether there is an element at the specified offset.
      * This method is required by the interface ArrayAccess.
-     * @param mixed the offset to check on
+     *
+     * @param mixed $offset the offset to check on
      * @return boolean
      */
     public function offsetExists($offset) {
@@ -133,7 +157,9 @@ trait QueryTrait
     /**
      * Returns the element at the specified offset.
      * This method is required by the interface ArrayAccess.
+     *
      * @see QueryObject::find()
+     * @param mixed $offset the offset to check on
      * @return QueryObject
      */
     public function offsetGet($offset) {
@@ -143,7 +169,7 @@ trait QueryTrait
     /**
      * Sets the element at the specified offset.
      * This method is required by the interface ArrayAccess.
-     * @param string the offset to set element
+     * @param string $offset the offset to set element
      * @param mixed the element value
      */
     public function offsetSet($offset, $item) {
@@ -153,7 +179,7 @@ trait QueryTrait
     /**
      * Unsets the element at the specified offset.
      * This method is required by the interface ArrayAccess.
-     * @param string the offset to unset element
+     * @param string $offset the offset to unset element
      */
     public function offsetUnset($offset) {
         $this->page->find($offset)->remove();
@@ -161,7 +187,7 @@ trait QueryTrait
 
     /**
      * Clear Title and Set new One Be CareFull
-     * @param string the new Title
+     * @param string $title the new Title
      * @return void
      */
     public function setTitle($title) {
@@ -172,16 +198,13 @@ trait QueryTrait
      * Append Title at the End
      * @param string $title the new Title
      * @param string $key Delemiter default  »
+     * @param string $func Functions default  append
      * @return void
      */
     public function addTitle($title, $key = ' » ',$func = 'append') {
         $_title = $this->page->find('title')->text();
         $this->page->find('title')->text($func === 'append' ? $_title.$key . $title : $title.$key.$_title );
     }
-
-
-
-
 
     /**
      * Saves a variable or an associative array of variables for use inside a template.
@@ -206,13 +229,19 @@ trait QueryTrait
         return $this;
     }
 
-    public function script($template){
+    /**
+     * Scripted Template
+     *
+     * @param $template
+     * @param string $ext
+     */
+    public function script($template, $ext = '.ptp'){
         $dirs = static::paths($this->plugin);
 
         $lang = Bit::getPreferredLanguage();
         $file = null;
         foreach($dirs as $_dir){
-            $dir = phi($_dir.DS.$template.'.ptp');
+            $dir = phi($_dir.DS.$template.$ext);
 
             if (!is_file($file = $dir->dirname . DS . $lang . DS . $dir->basename) && !is_file($file = $dir->dirname . DS . $dir->basename)){
                     $file = null;

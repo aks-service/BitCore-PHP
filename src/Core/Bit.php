@@ -1,12 +1,24 @@
 <?php
+/**
+ * BitCore-PHP:  Rapid Development Framework (https://phpcore.bitcoding.eu)
+ *
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @link          https://phpcore.bitcoding.eu BitCore-PHP Project
+ * @since         0.5.0
+ * @license       https://opensource.org/licenses/mit-license.php MIT License
+ */
+
 namespace Bit\Core;
-use Bit\Vars\UUID;
 
 use Bit\Enum\Lang;
-
 use Bit\Core\Enum\Dev;
 use Bit\Core\Enum\Mode;
 use Bit\Core\Enum\Ring;
+use Bit\Helper\UUID;
+
 /**
  * Bit class.
  *
@@ -17,13 +29,6 @@ use Bit\Core\Enum\Ring;
  * rewritten for customization.
  *
  * @author      Bitcoding <bitcoding@bitcoding.eu>
- * @copyright   Copyright &copy; 2009-2016, Bitcoding
- * @link        http://www.lessphp.eu/
- * @link        http://www.bitcoding.eu/
- * @license     http://www.bitcoding.eu/license/
- *
- * @version     0.5.0 (newbread): Bit.php
- * @package     System
  */
 class Bit
 {
@@ -42,17 +47,29 @@ class Bit
      */
     const HTML_EXT = 'html';
 
+    /**
+     *  UUID GLOBAL NAMESPACE
+     */
     const BIT_RULE = '42495443-4f44-494e-475f-52554c450d0a';
+    /**
+     *  UUID CACHE NAMESPACE
+     */
     const BIT_CACHE = '42495443-4f44-494e-475f-52554c450d0a';
-    const BIT_HMAC = '42495443-4f44-494e-475f-484d41430d0a';
-
 
     /**
-     * @return string the version of Bit framework
+     *  UUID HMAC NAMESPACE
+     */
+    const BIT_HMAC = '42495443-4f44-494e-475f-484d41430d0a';
+
+    /**
+     * The version of Bit framework
+     *
+     * @return string
      */
     public static function getVersion() {
-        return '0.5.0';
+        return Configure::version();
     }
+
     /**
      * Return the class name namespaced. This method checks if the class is defined on the
      * application/plugin, otherwise try to load from the BitPHP core
@@ -213,6 +230,7 @@ class Bit
     }
 
     /**
+     * Simple Helper for get a UUIDv5
      * @param $string
      * @param string $base
      * @return bool
@@ -222,19 +240,24 @@ class Bit
         return UUID::v5($base, $string);
     }
 
+    /**
+     * GET System Tempory Directory
+     * @return string
+     */
     public static function getSysTemp()
     {
         return sys_get_temp_dir();
     }
 
+    /**
+     * Simple Wrapper for HASH FILE
+     * @param $file
+     * @param string $mode
+     * @param string $secret
+     * @return string
+     */
     public static function getFileHash($file, $mode = 'md5', $secret = self::BIT_HMAC)
     {
         return hash_hmac_file($mode, $file, $secret);
     }
-
-    public static function getIP()
-    {
-        return PROXY_MODE && Vars::server_isip('HTTP_X_FORWARDED_FOR') ? Vars::server_getstring('HTTP_X_FORWARDED_FOR') : $_SERVER["REMOTE_ADDR"];
-    }
-
 }

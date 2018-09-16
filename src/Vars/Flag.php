@@ -1,19 +1,29 @@
 <?php
-/* 
- * BitCore (tm) : Bit Development Framework
- * Copyright (c) BitCore
- * 
+/**
+ * BitCore-PHP:  Rapid Development Framework (https://phpcore.bitcoding.eu)
+ *
  * Licensed under The MIT License
  * For full copyright and license information, please see the LICENSE.txt
  * Redistributions of files must retain the above copyright notice.
- * 
- * @copyright     BitCore
- * @license       http://www.opensource.org/licenses/mit-license.php MIT License
+ *
+ * @link          https://phpcore.bitcoding.eu BitCore-PHP Project
+ * @since         0.1.0
+ * @license       https://opensource.org/licenses/mit-license.php MIT License
  */
+
 namespace Bit\Vars;
 use Bit\Core\Vars;
 
+/**
+ * Class Flag
+ * Working With Const as Bit Flags
+ * @package Bit\Vars
+ */
 abstract class Flag extends Enum{
+    /**
+     * Flag constructor.
+     * @param $var
+     */
     function __construct($var)
     {
         if(is_array($var))
@@ -45,6 +55,11 @@ abstract class Flag extends Enum{
         parent::__construct($var);
     }
 
+    /**
+     * Check Flag isset
+     * @param $flag
+     * @return int
+     */
     public function hasFlag($flag)
     {
         if (is_numeric($flag))
@@ -56,6 +71,11 @@ abstract class Flag extends Enum{
         return 0;
     }
 
+    /**
+     * Return Value
+     * @param bool $object
+     * @return int|mixed|null|object
+     */
     public function get($object = false){
         if(!$object)
             return parent::get();
@@ -72,6 +92,10 @@ abstract class Flag extends Enum{
                 );
     }
 
+    /**
+     * Flags to String
+     * @return int|null|string
+     */
     function __toString()
     {
         // TODO: Implement __toString() method.

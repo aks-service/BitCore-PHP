@@ -1,54 +1,69 @@
 <?php
 /**
- * Created by PhpStorm.
- * User: bitcoding
- * Date: 25.04.16
- * Time: 23:11
+ * BitCore-PHP:  Rapid Development Framework (https://phpcore.bitcoding.eu)
+ *
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @link          https://phpcore.bitcoding.eu BitCore-PHP Project
+ * @since         0.7.0
+ * @license       https://opensource.org/licenses/mit-license.php MIT License
  */
 
 namespace Bit\PHPQuery;
-
-//Iterator, Countable, ArrayAccess
 
 use Bit\Core\Exception\Exception;
 use Bit\PHPQuery\Exception\MissingElementException;
 use \IteratorAggregate;
 use \Countable;
 use \ArrayAccess;
-use MongoDB\Driver\Query;
 
+/**
+ * Class QueryObject
+ * @package Bit\PHPQuery
+ */
 class QueryObject implements Countable, IteratorAggregate, ArrayAccess
 {
     /**
-     * @var string The current URI
+     * The current URI
+     * @var string
      */
     protected $uri;
 
     /**
-     * @var string The default namespace prefix to be used with XPath and CSS expressions
+     * The default namespace prefix to be used with XPath and CSS expressions
+     * @var string
      */
     private $defaultNamespacePrefix = 'default';
 
     /**
-     * @var array A map of manually registered namespaces
+     * A map of manually registered namespaces
+     * @var array
      */
     private $namespaces = array();
 
     /**
-     * @var string The base href value
+     * The base href value
+     * @var string
      */
     private $baseHref;
+
     /**
-     * @var string The base href value
+     * The base href value
+     * @var string
      */
     private $charset;
 
     /**
+     * The Document
      * @var \DOMDocument|null
      */
     private $document;
 
     /**
+     * Selected Nodes
+     *
      * @var \DOMElement[]
      */
     private $nodes = array();
@@ -61,6 +76,8 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     private $isHtml = true;
 
     /**
+     * Construct QueryObject
+     *
      * @param mixed $node A Node to use as the base for the crawling
      * @param string $currentUri The current URI
      * @param string $baseHref The base href value
@@ -74,6 +91,10 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
         $this->add($node);
     }
 
+    /**
+     * Hash Document
+     * @return string
+     */
     public function getDocumentID(){
         return spl_object_hash($this->document);
     }

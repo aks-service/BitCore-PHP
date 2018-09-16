@@ -1,4 +1,16 @@
 <?php
+/**
+ * BitCore-PHP:  Rapid Development Framework (https://phpcore.bitcoding.eu)
+ *
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @link          https://phpcore.bitcoding.eu BitCore-PHP Project
+ * @since         0.7.0
+ * @license       https://opensource.org/licenses/mit-license.php MIT License
+ */
+
 namespace Bit\Mailer;
 
 use BadMethodCallException;
@@ -1157,6 +1169,12 @@ class Email implements JsonSerializable, Serializable
 
     /**
      * Send an email using the specified content, template and layout
+     * ### Example:
+     *
+     * ```
+     * $email->_render(function (QueryObject $object) {
+     * });
+     * ```
      *
      * @param callable|null $content
      * @return array
@@ -1448,7 +1466,14 @@ class Email implements JsonSerializable, Serializable
     /**
      * Render the body of the email.
      *
-     * @param array $content Content to render
+     * ### Example:
+     *
+     * ```
+     * $email->_render(function (QueryObject $object) {
+     * });
+     * ```
+     *
+     * @param callable|null $call
      * @return array Email body ready to be sent
      */
     protected function _render(callable $call = null)
@@ -1568,7 +1593,14 @@ class Email implements JsonSerializable, Serializable
      * If there is no template set, the $content will be returned in a hash
      * of the text content types for the email.
      *
-     * @param string $content The content passed in from send() in most cases.
+     * ### Example:
+     *
+     * ```
+     * $email->_renderTemplate(function (QueryObject $object) {
+     * });
+     * ```
+     *
+     * @param callable|null $call
      * @return array The rendered content with html and text keys.
      */
     protected function _renderTemplates(callable $call = null)

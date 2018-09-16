@@ -1,10 +1,14 @@
 <?php
 /**
- * Project  Frostmourne HP (3.3.5/4.3.4 Full Support)
+ * BitCore-PHP:  Rapid Development Framework (https://phpcore.bitcoding.eu)
  *
- *  @link         http://www.frostmourne.eu/
- *  @copyright    Copyright (c) 2009 - 2016 Frostmourne
- *  @version      v4.0.1a
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @link          https://phpcore.bitcoding.eu BitCore-PHP Project
+ * @since         0.8.0
+ * @license       https://opensource.org/licenses/mit-license.php MIT License
  */
 namespace Bit\Parser;
 
@@ -13,6 +17,10 @@ use Bit\Utility\Hash;
 use Bit\Parser\Parser\Document;
 use Bit\Parser\Parser\Node;
 
+/**
+ * Class ParserEngine
+ * @package Bit\Parser
+ */
 abstract class ParserEngine
 {
     use InstanceConfig;
@@ -51,11 +59,20 @@ abstract class ParserEngine
     }
 
 
-    /*abstract*/
+    /**
+     * Parse Text To ParseDocument
+     * @param $text
+     * @return Document
+     */
     abstract function parse($text);
+
+    /**
+     * Document to Html
+     * @param Node $node
+     * @param null $list
+     * @param bool $disable
+     * @return string
+     */
     abstract function render(Node $node,&$list = null ,$disable = false);
-    
 
-
-    //static function engine();
 }
