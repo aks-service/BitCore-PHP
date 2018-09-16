@@ -83,7 +83,29 @@ use RuntimeException;
  */
 class Controller implements \ArrayAccess, EventListenerInterface, EventDispatcherInterface, LessInterface
 {
+    /**
+     * Append Selector Rule
+     *
+     * ```
+     * .body
+     * ```
+     *
+     * ```
+     * [attr="test"]
+     * ```
+     */
     CONST APPEND = 'body';
+    /**
+     * Append Function
+     * append
+     * prepend
+     * before
+     * after
+     * appendTo
+     * prependTo
+     * insertBefore
+     * insertAfter
+     */
     CONST APPEND_FUNC = 'append';
 
 

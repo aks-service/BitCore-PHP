@@ -76,11 +76,12 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     private $isHtml = true;
 
     /**
-     * Construct QueryObject
+     * QueryObject constructor.
      *
-     * @param mixed $node A Node to use as the base for the crawling
-     * @param string $currentUri The current URI
-     * @param string $baseHref The base href value
+     * @param null $node A Node to use as the base for the crawling
+     * @param null $currentUri The current URI
+     * @param null $baseHref The base href value
+     * @param string $charset
      */
     public function __construct($node = null, $currentUri = null, $baseHref = null,$charset = 'UTF-8')
     {
@@ -110,6 +111,9 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     }
 
     /**
+     * Can add nodes
+     * or return all Nodes
+     *
      * @param null $nodes
      * @return QueryObject|\DOMElement[]|\DOMNode[]
      */
@@ -387,9 +391,9 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
      * You can extract attributes or/and the node value (_text).
      *
      * Example:
-     *
+     * ```
      * $crawler->filter('h1 a')->extract(array('_text', 'href'));
-     *
+     * ```
      * @param array $attributes An array of attributes
      *
      * @return array An array of extracted values
@@ -534,6 +538,10 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     }
 
     /**
+     * Magic method
+     *
+     * Factory to load plugins
+     *
      * @access private
      *
      * @param $method
@@ -542,6 +550,18 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
      */
     public function __call($method, $args)
     {
+        if($method == 'clone')
+        {
+            $return = [];
+            foreach ($this as $node) {
+                if($node instanceof \DOMDocumentType)
+                    continue;
+                $return[] = $node->cloneNode(true);
+            }
+
+            return $this->createSub($return);
+        }
+
         if ($_cls = PHPQueryFactory::plugin($method)) {
             return $_cls->invoke($this,$args);
         }
@@ -555,9 +575,29 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     }
 
     /**
-     * Enter description here...
+     * The `remove()` method takes elements out of the DOM.
+     * Use `remove()` when you want to remove the element itself, as well as
+     * everything inside it. In addition to the elements
+     * themselves, all bound events and jQuery data associated
+     * with the elements are removed.
      *
-     * @return self|QueryObject
+     * ### Example:
+     *
+     * Consider the following HTML:
+     * ```
+     * <div class="container">
+     *  <div class="hello">Hello</div>
+     *  <div class="goodbye">Goodbye</div>
+     * </div>
+     * ```
+     *
+     * We can target any element for removal:
+     * ```
+     * $node->find('.hello')->remove();
+     * ```
+     *
+     * @param null|string $selector
+     * @return $this|self|QueryObject
      */
     public function remove($selector = null)
     {
@@ -580,6 +620,13 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     }
 
     /**
+     * The `attr()` method gets the attribute value for only the first element
+     * in the matched set. To get the value for each element individually, use a looping
+     * construct such as jQuery's `each()`.
+     *
+     * Using jQuery's `attr()` method to get the value of an element's
+     * attribute has two main benefits:
+     *
      * @param null $attr
      * @param null $value
      * @return array|QueryObject|null|string
@@ -641,9 +688,10 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     }
 
     /**
-     * Enter description here...
+     * Remove Attributes
      *
-     * @return QueryObject
+     * @param $attr
+     * @return $this
      */
     public function removeAttr($attr) {
         foreach($this->nodes() as $node) {
@@ -657,9 +705,30 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     }
 
     /**
-     * Enter description here...
+     * In an HTML document, html() can be used to get the contents of
+     * any element. If the selector expression matches more than one element,
+     * only the first match will have its HTML content returned. Consider this code:
      *
-     * @param unknown_type $html
+     * ### Example:
+     *
+     * ```
+     * $html = $node->html();
+     * ```
+     *
+     * When .html() is used to set an element's content,
+     * any content that was in that element is completely replaced by the new
+     * content. Additionally, jQuery removes other constructs such as data and
+     * event handlers from child elements before replacing those elements with
+     * the new content.
+     *
+     * ### Example:
+     *
+     * ```
+     * $node->html('<a href="#">Test</a>');
+     * ```
+     *
+     * @param string|QueryObject|callable $html
+     * @param boolean $innerMarkup
      * @return string|phpQuery|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery
      * @TODO force html result
      */
@@ -705,9 +774,12 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
 
         return $html;
     }
+
     /**
      * Return joined text content.
-     * @return QueryObject|$this|String
+     *
+     * @param null $text
+     * @return $this|string
      */
     public function text($text = null)
     {
@@ -731,11 +803,19 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
         return $return;
     }
 
+    /**
+     * Clean the Text
+     * @return QueryObject
+     */
     public function cleanText(){
         return $this->filterRelativeXPath('/html/body//text()[not(ancestor::script) andnot(normalize-space(.) = "")]');
     }
 
     /**
+     * Given a QueryObject that represents a set of DOM elements, the parent()
+     * method traverses to the immediate parent of each of these elements in the
+     * DOM tree and constructs a new jQuery object from the matching elements.
+     *
      * @param null $selector
      * @return self|QueryObject
      */
@@ -786,6 +866,8 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     }
 
     /**
+     * Return node on Specific position
+     *
      * @param int $position
      *
      * @return \DOMElement|null
@@ -799,6 +881,8 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     }
 
     /**
+     * Nodes As Iterator
+     *
      * @return \ArrayIterator|self[]|QueryObject[]
      */
     public function getIterator()
@@ -807,6 +891,7 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     }
 
     /**
+     * Count node elements
      * @return mixed
      */
     public function count()
@@ -815,6 +900,8 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     }
 
     /**
+     * Helper
+     *
      * @param \DOMDocument $document
      * @param array $prefixes
      *
@@ -837,6 +924,8 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     }
 
     /**
+     * Helper
+     *
      * @param string $xpath
      *
      * @return array
@@ -851,7 +940,9 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     }
 
     /**
-     * @return phpQuery|QueryTemplatesParse|QueryTemplatesSource|QueryTemplatesSourceQuery|string
+     * conbert object to html()
+     *
+     * @return QueryObject|string
      */
     public function __toString() {
         return count($this->find('html')) ? '<!DOCTYPE html>'.PHP_EOL.$this->html() : (count($this) ? $this->html()  :'' ) ;
@@ -859,9 +950,12 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
 
 
     /**
+     *
      * OLD stackContainsNode
      *
-     * @access private
+     * @param $nodeToCheck
+     * @param null $elementsStack
+     * @return bool
      */
     protected function stackContainsNode($nodeToCheck, $elementsStack = null) {
         $loop = $elementsStack ?: $this->nodes();
@@ -876,9 +970,16 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     // === PHPQuery
 
     /**
-     * Enter description here...
+     * It's important to note that this method does not replace a class.
+     * It simply adds the class, appending it to any which may already be assigned to the elements.
      *
-     * @return QueryObject
+     * Example:
+     * ```
+     *     $node->find('h1')->addClass("black");
+     * ```
+     *
+     * @param    string $className
+     * @return QueryObject|self|$this
      */
     public function addClass($className)
     {
@@ -897,8 +998,12 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     }
 
     /**
-     * Enter description here...
+     * Determine whether any of the matched elements are assigned the given class.
      *
+     * Example:
+     * ```
+     *     $isActive = $node->find('h1')->hasClass("active");
+     * ```
      * @param    string $className
      * @return    bool
      */
@@ -912,9 +1017,16 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     }
 
     /**
-     * Enter description here...
+     * If a class name is included as a parameter, then only that class will be removed
+     * from the set of matched elements. If no class names are specified in the parameter,
+     * all classes will be removed.
      *
-     * @return phpQueryObject|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery
+     * Example:
+     * ```
+     *      $node->find('h1')->removeClass("active");
+     * ```
+     * @param $className
+     * @return QueryObject|$this
      */
     public function removeClass($className)
     {
@@ -932,9 +1044,17 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     }
 
     /**
-     * Enter description here...
      *
-     * @return phpQueryObject|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery
+     * Add or remove one or more classes from each element in the set of matched elements,
+     * depending on either the class's presence or the value of the state argument.
+     *
+     * This method takes one or more class names as its parameter.
+     * In the first version, if an element in the matched set of elements already
+     * has the class, then it is removed; if an element does not have the class,
+     * then it is added. For example, we can apply `toggleClass()` to a simple `<div>`:
+     *
+     * @param $className
+     * @return $this|QueryObject
      */
     public function toggleClass($className)
     {
@@ -948,6 +1068,10 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     }
 
     /**
+     * Unlike other filtering methods, `is()` does not create a new jQuery object.
+     * Instead, it allows you to test the contents of a jQuery object without
+     * modification. This is often useful inside callbacks, such as event handlers.
+     *
      * @param $selector
      * @param null $nodes
      * @return array|bool|null
@@ -956,7 +1080,6 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     {
         if (!$selector)
             return false;
-
 
         $sub = $this;
 
@@ -968,8 +1091,12 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
 
         return (bool)count($sub);
     }
+
     /**
-     * Enter description here..
+     *
+     * print_r for QueryObject
+     *
+     * @param $var
      * @return QueryObject
      */
     public function print_r($var){
@@ -977,6 +1104,7 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
         var_dump($var);
         $result = ob_get_clean();
         $this->append(sprintf('<pre class="pr">%s</pre>', $result));
+        return $this;
     }
 
     /**
@@ -1054,7 +1182,9 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     /**
      * Enter description here...
      *
-     * @return phpQueryObject|QueryTemplatesSource|QueryTemplatesParse|QueryTemplatesSourceQuery
+     * @param $seletor
+     * @return QueryObject
+     * @throws \Exception
      */
     public function insertAfter($seletor)
     {
@@ -1062,9 +1192,9 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     }
 
     /**
+     * Description TODO
      *
      * @param $source
-     * @param $target
      * @param $sourceCharset
      * @return array Array of imported nodes.
      */
@@ -1097,7 +1227,7 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     /**
      * Internal insert method. Don't use it.
      *
-     * @param String|QueryObject $target
+     * @param String|QueryObject $_target
      * @param String $type
      * @return QueryObject
      * @access private
@@ -1180,6 +1310,11 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
         return $this;
     }
 
+    /**
+     * Explode class string
+     *
+     * @var array
+     */
     static private $explodeCache = array();
 
     /**
@@ -1187,8 +1322,8 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
      *
      * In the future, when PHP will support XLS 2.0, then we would do that this way:
      * contains(tokenize(@class, '\s'), "something")
-     * @param unknown_type $class
-     * @param unknown_type $node
+     * @param string $classes
+     * @param string $class
      * @return boolean
      * @access private
      */
@@ -1228,6 +1363,19 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     }
 
     /**
+     * Given a QueryObject that represents a set of DOM elements, the `children()`
+     * method allows us to search through the children of these elements in the DOM
+     * tree and construct a new jQuery object from the matching elements.
+     * The `children()` method differs from  `find()` in that `children()`
+     * only travels a single level down the DOM tree while `find()` can traverse
+     * down multiple levels to select descendant elements (grandchildren, etc.) as well.
+     * Note also that like most jQuery methods, `children()` does not return text nodes;
+     * to get all children including text and comment nodes, use `contents()`.
+     *
+     * The `children()` method optionally accepts a selector expression of the same
+     * type that we can pass to the $() function. If the selector is supplied,
+     * the elements will be filtered by testing whether they match it.
+     *
      * @param null $selector
      * @return QueryObject
      */
@@ -1246,24 +1394,10 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
         return $this->createSub($stack);
     }
 
-    /**
-     * @return QueryObject
-     */
-    public function clone()
-    {
-        $return = [];
-        foreach ($this as $node) {
-            if($node instanceof \DOMDocumentType)
-                continue;
-            $return[] = $node->cloneNode(true);
-        }
-
-        return $this->createSub($return);
-    }
-    //ArrayAccess
-
 
     /**
+     * Array Access Helper
+     *
      * @param mixed $offset
      * @return bool|int
      */
@@ -1274,6 +1408,8 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
 
 
     /**
+     * Array Access Helper
+     *
      * @param mixed $offset
      * @return self|QueryObject
      */
@@ -1283,6 +1419,8 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     }
 
     /**
+     * Array Access Helper
+     *
      * @param mixed $offset
      * @param mixed $value
      */
@@ -1295,6 +1433,8 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     }
 
     /**
+     * Array Access Helper
+     *
      * @param mixed $offset
      */
     public function offsetUnset($offset)
@@ -1304,6 +1444,8 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     }
 
     /**
+     * Todo Description
+     *
      * @param \DOMXPath $domxpath
      * @param string    $prefix
      *
@@ -1327,6 +1469,7 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
 
     /**
      * return TagName
+     *
      * @return string
      */
     function getTagName(){
@@ -1337,6 +1480,7 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
     }
 
     /**
+     * TODO description
      * @param string $prefix
      * @param string $namespace
      */
@@ -1345,6 +1489,11 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
         $this->namespaces[$prefix] = $namespace;
     }
 
+    /**
+     * DebugInfo QueryObject
+     *
+     * @return array
+     */
     public function __debugInfo()
     {
         return [

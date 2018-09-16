@@ -29,26 +29,26 @@ trait CellTrait
      * Example:
      *
      * ```
-     * // Taxonomy\View\Cell\TagCloudCell::smallList()
+     * // Taxonomy\Controller\Cell\TagCloudCell::smallList()
      * $cell = $this->cell('Taxonomy.TagCloud::smallList', ['limit' => 10]);
      *
-     * // App\View\Cell\TagCloudCell::smallList()
+     * // App\Controller\Cell\TagCloudCell::smallList()
      * $cell = $this->cell('TagCloud::smallList', ['limit' => 10]);
      * ```
      *
      * The `display` action will be used by default when no action is provided:
      *
      * ```
-     * // Taxonomy\View\Cell\TagCloudCell::display()
+     * // Taxonomy\Controller\Cell\TagCloudCell::display()
      * $cell = $this->cell('Taxonomy.TagCloud');
      * ```
      *
      * Cells are not rendered until they are echoed.
      *
      * @param string $cell You must indicate cell name, and optionally a cell action. e.g.: `TagCloud::smallList`
-     * will invoke `View\Cell\TagCloudCell::smallList()`, `display` action will be invoked by default when none is provided.
+     * will invoke `Controller\Cell\TagCloudCell::smallList()`, `display` action will be invoked by default when none is provided.
      * @param array $data Additional arguments for cell method. e.g.:
-     *    `cell('TagCloud::smallList', ['a1' => 'v1', 'a2' => 'v2'])` maps to `View\Cell\TagCloud::smallList(v1, v2)`
+     *    `cell('TagCloud::smallList', ['a1' => 'v1', 'a2' => 'v2'])` maps to `Controller\Cell\TagCloud::smallList(v1, v2)`
      * @param array $options Options for Cell's constructor
      * @return \Bit\Controller\Cell The cell instance
      * @throws \Bit\Controller\Exception\MissingCellException If Cell class was not found.
