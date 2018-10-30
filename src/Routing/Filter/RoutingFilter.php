@@ -48,7 +48,6 @@ class RoutingFilter extends DispatcherFilter
     {
         $request = $event->data['request'];
         Router::setRequestInfo($request);
-
         try {
             if (empty($request->params['controller'])) {
                 $params = Router::parse($request->url);

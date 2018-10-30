@@ -378,6 +378,7 @@ class Controller implements \ArrayAccess, EventListenerInterface, EventDispatche
             ]);
         }
 
+
         return $this->_runAction($request->params['action'], $request->params['pass']);
     }
 

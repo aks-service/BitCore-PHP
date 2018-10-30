@@ -671,6 +671,7 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
                     foreach (($node->attributes) as $n => $v)
                         if ($set || in_array($n, $attr))
                             $results[$key][$n] = $v->value;
+                    $results[$key] = (object)$results[$key];
                     continue;
                 }
                 if ($node->hasAttribute($attr))

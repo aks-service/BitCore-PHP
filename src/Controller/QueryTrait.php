@@ -251,8 +251,6 @@ trait QueryTrait
                 try {
                     include $file;
                 }catch(\Exception $e){
-                    var_dump($e);
-                    die();
                 }
                 return;
             }

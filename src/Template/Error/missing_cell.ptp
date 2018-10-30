@@ -1,4 +1,14 @@
 <?php
+/**
+ * ERPaks
+ *
+ * @author       Sören Eckart <mailto:se@aks-service.de>
+ * @link         http://www.aks-service.de/
+ * @copyright    Copyright (c) 2010 - 2018 aks Service GmbH
+ * @version      v4.0a
+ *
+ */
+
 use Bit\Core\Plugin;
 use Bit\Core\Configure;
 use Bit\Utility\Inflector;
@@ -7,7 +17,7 @@ use Bit\Utility\Inflector;
 $pluginDot = empty($plugin) ? null : $plugin . '.';
 $namespace = Configure::read('App.namespace');
 $prefixNs = $prefixPath = '';
-
+$class = $className;
 $incompleteInflection = (strpos($class, '_') !== false || strpos($class, '-'));
 $originalClass = $class;
 
@@ -23,22 +33,22 @@ if (!empty($plugin)) {
     $namespace = str_replace('/', '\\', $plugin);
 }
 if (empty($plugin)) {
-    $path = APP_DIR . DIRECTORY_SEPARATOR . 'Controller' . DIRECTORY_SEPARATOR . $prefixPath . h($class) . 'Controller.php' ;
+    $path = APP_DIR . DIRECTORY_SEPARATOR . 'Controller/Cell' . DIRECTORY_SEPARATOR . $prefixPath . h($class) . '.php' ;
 } else {
-    $path = Plugin::classPath($plugin) . 'Controller' . DIRECTORY_SEPARATOR . $prefixPath . h($class) . 'Controller.php';
+    $path = Plugin::classPath($plugin) . 'Controller/Cell' . DIRECTORY_SEPARATOR . $prefixPath . h($class) . '.php';
 }
 
 
 $this->loadTemplate("Error/error400");
-$this->setTitle(__d('bit',"Missing Controller"));
+$this->setTitle(__d('bit',"Missing Cell"));
 
 $msg = $this['[data-message]'];
 
 if ($incompleteInflection):
 $msg
-    ->append('Your routing resulted in <em>'.h($originalClass).'</em> as a controller name.')
+    ->append('Your routing resulted in <em>'.h($originalClass).'</em> as a cell name.')
     ->append('<br>')
-    ->append('<p>The controller name <em>'.h($originalClass).'</em> has not been properly inflected, and
+    ->append('<p>The cell name <em>'.h($originalClass).'</em> has not been properly inflected, and
     could not be resolved to a controller that exists in your application.</p>
 
     <p>Ensure that your URL <strong>'.h($this->request->getUri()->getPath()).'</strong> is
@@ -46,20 +56,20 @@ $msg
     and URLs should use <strong>-</strong> to separate multi-word controller names.</p>');
 else:
 $msg
-    ->append('<span><em>'.h($pluginDot . $class).'Controller</em> could not be found.</span>')->append('<br>')
+    ->append('<span><em>'.h($pluginDot . $class).'</em> could not be found.</span>')->append('<br>')
     ->append('<p>
         In the case you tried to access a plugin controller make sure you added it to your composer file or you use the autoload option for the plugin.
     </p>
     <p class="error">
-        Create the class <em>'.h($class).'Controller</em> below in file: '.h($path).'
+        Create the class <em>'.h($class).'</em> below in file: '.h($path).'
     </p>');
 $code = <<<PHP
 <?php
-    namespace {$namespace}\Controller{$prefixNs};
+    namespace {$namespace}\Controller\Cell{$prefixNs};
 
-    use {$namespace}\Controller\AppController;
+    use {$namespace}\Controller\Cell\AppCell;
 
-    class {$class}Controller extends AppController
+    class {$class}Cell extends AppCell
     {
 
     }
