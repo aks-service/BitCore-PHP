@@ -23,7 +23,7 @@ use Bit\Log\Log;
 use Bit\Network\Http\FormData\Part;
 use Bit\PHPQuery\QueryObject;
 use Bit\Utility\Hash;
-use Bit\Vars\UUID;
+use Bit\Helper\UUID;
 use Closure;
 use Exception;
 use InvalidArgumentException;
