@@ -871,7 +871,8 @@ class Router
      */
     public static function scope($path, $params = [], $callback = null)
     {
-        $builder = new RouteBuilder(static::$_collection, '/', [], [
+        $builderClass = Bit::className('RouteBuilder', 'Routing');
+        $builder = new $builderClass(static::$_collection, '/', [], [
             'routeClass' => static::defaultRouteClass(),
             'extensions' => static::$_defaultExtensions,
         ]);
