@@ -22,6 +22,7 @@ use \ArrayAccess;
 /**
  * Class QueryObject
  * @package Bit\PHPQuery
+ * @method self|QueryObject clone()  Clone Object 
  */
 class QueryObject implements Countable, IteratorAggregate, ArrayAccess
 {
