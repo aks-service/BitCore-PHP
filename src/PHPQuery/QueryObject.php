@@ -486,6 +486,30 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
 
         return $data;
     }
+    
+    
+    /**
+     * Calls an anonymous function on this.
+     *
+     * The anonymous function receives the position and the node wrapped
+     * in a Crawler instance as arguments.
+     *
+     * Example:
+     *
+     *     $crawler->filter('h1')->excecute(function (QueryObject $node) {
+     *         $node->text('Test');
+     *     });
+     *
+     * @param \Closure $closure An anonymous function
+     *
+     * @return self|QueryObject
+     */
+    public function excecute(\Closure $closure)
+    {
+        $closure($this);
+
+        return $this;
+    }
 
     /**
      * Slices the list of nodes by $offset and $length.
