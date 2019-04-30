@@ -680,12 +680,12 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
             } else {
                 if ($isArray) {
                     foreach ($attr as $k => $v)
-                        @$node->setAttribute($k, $v);
+                        @$node->setAttribute($k, is_array($v) ? json_encode($v) : $v);
                 } else if ($set)
                     foreach (($this->getNodeAttrs($node)) as $a)
-                        @$node->setAttribute($a, $value);
+                        @$node->setAttribute($a, is_array($value) ? json_encode($value) : $value);
                 else
-                    @$node->setAttribute($attr, $value);
+                    @$node->setAttribute($attr, is_array($value) ? json_encode($value) : $value);
                 return $this;
             }
         }
@@ -703,12 +703,12 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
                     $results[$key] = $node->getAttribute($attr);
             } else if ($isArray)
                 foreach ($attr as $k => $v)
-                    @$node->setAttribute($k, $v);
+                    @$node->setAttribute($k, is_array($v) ? json_encode($v) : $v);
             else if ($set)
-                foreach ($node > attributes as $a)
-                    @$node->setAttribute($a, $value);
+                foreach ($node->attributes as $a)
+                    @$node->setAttribute($a, is_array($value) ? json_encode($value) : $value);
             else
-                @$node->setAttribute($attr, $value);
+                @$node->setAttribute($attr, is_array($value) ? json_encode($value) : $value);
         }
         return $vNull ? $results : $this;
     }
