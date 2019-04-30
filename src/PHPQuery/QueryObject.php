@@ -447,7 +447,7 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
      *
      * @return self|QueryObject
      */
-    private function filterRelativeXPath($xpath)
+    public function filterRelativeXPath($xpath)
     {
         $prefixes = $this->findNamespacePrefixes($xpath);
 
