@@ -822,8 +822,9 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
         foreach ($this->nodes() as $node) {
             $txt = trim($node->textContent);
             if ($i > 1 && $txt)
-                $txt .= ($node->nodeName === 'div' || $node->nodeName === 'p') ? "\n" : '';
-
+                $txt .= "\n";
+            elseif($node->nodeName === 'br')
+                $txt .= "\n";
             $return .= $txt;
         }
         return $return;
@@ -834,7 +835,7 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
      * @return QueryObject
      */
     public function cleanText(){
-        return $this->filterRelativeXPath('/html/body//text()[not(ancestor::script) andnot(normalize-space(.) = "")]');
+        return $this->filterRelativeXPath('/html/body//text()[not(ancestor::script) and not(normalize-space(.) = "")] | /html/body//br');
     }
 
     /**
