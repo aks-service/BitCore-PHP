@@ -13,6 +13,7 @@
 
 namespace Bit\Routing;
 
+use Bit\Core\Bit;
 use Bit\Core\Configure;
 use Bit\Network\Request;
 use Bit\Utility\Inflector;

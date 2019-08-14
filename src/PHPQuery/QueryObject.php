@@ -22,7 +22,7 @@ use \ArrayAccess;
 /**
  * Class QueryObject
  * @package Bit\PHPQuery
- * @method self|QueryObject clone()  Clone Object 
+ * @method self|QueryObject clone()  Clone Object
  */
 class QueryObject implements Countable, IteratorAggregate, ArrayAccess
 {
@@ -447,7 +447,7 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
      *
      * @return self|QueryObject
      */
-    private function filterRelativeXPath($xpath)
+    public function filterRelativeXPath($xpath)
     {
         $prefixes = $this->findNamespacePrefixes($xpath);
 
@@ -487,8 +487,8 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
 
         return $data;
     }
-    
-    
+
+
     /**
      * Calls an anonymous function on this.
      *
@@ -680,12 +680,12 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
             } else {
                 if ($isArray) {
                     foreach ($attr as $k => $v)
-                        @$node->setAttribute($k, $v);
+                        @$node->setAttribute($k, is_array($v) ? json_encode($v) : $v);
                 } else if ($set)
                     foreach (($this->getNodeAttrs($node)) as $a)
-                        @$node->setAttribute($a, $value);
+                        @$node->setAttribute($a, is_array($value) ? json_encode($value) : $value);
                 else
-                    @$node->setAttribute($attr, $value);
+                    @$node->setAttribute($attr, is_array($value) ? json_encode($value) : $value);
                 return $this;
             }
         }
@@ -703,12 +703,12 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
                     $results[$key] = $node->getAttribute($attr);
             } else if ($isArray)
                 foreach ($attr as $k => $v)
-                    @$node->setAttribute($k, $v);
+                    @$node->setAttribute($k, is_array($v) ? json_encode($v) : $v);
             else if ($set)
-                foreach ($node > attributes as $a)
-                    @$node->setAttribute($a, $value);
+                foreach ($node->attributes as $a)
+                    @$node->setAttribute($a, is_array($value) ? json_encode($value) : $value);
             else
-                @$node->setAttribute($attr, $value);
+                @$node->setAttribute($attr, is_array($value) ? json_encode($value) : $value);
         }
         return $vNull ? $results : $this;
     }
@@ -822,7 +822,7 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
         foreach ($this->nodes() as $node) {
             $txt = trim($node->textContent);
             if ($i > 1 && $txt)
-                $txt .= "\n";
+                $txt .= ($node->nodeName === 'div' || $node->nodeName === 'p') ? "\n" : '';
 
             $return .= $txt;
         }
@@ -1277,7 +1277,7 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
             ? $from
             : $insertTo->import($from);
 
-        
+
         foreach ($insertTo as $insertNumber => $toNode) {
             switch ($type) {
                 case 'prependTo':
