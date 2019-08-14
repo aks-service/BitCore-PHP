@@ -770,7 +770,7 @@ class QueryObject implements Countable, IteratorAggregate, ArrayAccess
                 $nodes = $html;
             else{
                 $html = trim(is_callable($html) ? $html() : $html);
-                $unwrap = $html[0] != '<';
+                $unwrap = !isset($html[0]) || $html[0] != '<';
                 if($unwrap)
                     $html = '<text>'.$html.'</text>';
                 $nodes = new static($html);
