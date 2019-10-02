@@ -249,10 +249,9 @@ trait QueryTrait
             if($file){
                 extract($this->viewVars);
                 try {
-                    include $file;
+                    return include $file;
                 }catch(\Exception $e){
                 }
-                return;
             }
         }
         throw new MissingScriptException([
