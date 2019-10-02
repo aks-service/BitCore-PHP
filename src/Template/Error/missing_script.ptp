@@ -1,0 +1,30 @@
+<?php
+use Bit\Core\Plugin;
+use Bit\Core\Configure;
+use Bit\Utility\Inflector;
+
+$this->setTitle(__d('bit',"Missing Script"));
+
+$this->loadTemplate("Error/error400");
+
+$ul = new \Bit\PHPQuery\QueryObject('<ul/>');
+$li = new \Bit\PHPQuery\QueryObject('<li/>');
+
+$paths = $this->paths($this->plugin);
+foreach ($paths as $path){
+    if (strpos($path, CORE_PATH) !== false) {
+        continue;
+    }
+    $li->clone()->html(sprintf('%s%s', h($path), h($script.$ext)))->appendTo($ul);
+}
+$msg = $this['[data-message]'];
+$msg ->append(sprintf('The template %s</em> was not found.', h($script)))->append('<br>')
+    ->append('<p>'.sprintf(__d('bit','Confirm you have created the file: "%s"'), h($script)).__d('bit','in one of the following paths:').'</p>')
+    ->append($ul);
+$code = <<<PHP
+<?php
+    /**
+    * @var Bit\Controller\Controller \$this
+    */
+PHP;
+$msg->append('<div class="card my-1  p-2">'.highlight_string($code,true).'</div>');

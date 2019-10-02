@@ -14,6 +14,7 @@
 namespace Bit\Error;
 
 use Bit\Controller\Controller;
+use Bit\Controller\Exception\MissingFileException;
 use Bit\Controller\Exception\MissingTemplateException;
 use Bit\Core\Bit;
 use Bit\Core\Configure;
@@ -327,7 +328,7 @@ class ExceptionRenderer
                 return $this->_outputMessageSafe('error500');
             }
             return $this->_outputMessage('error500');
-        } catch (MissingPluginException $e) {
+        } catch (MissingFileException $e) {
             $attributes = $e->getAttributes();
             if (isset($attributes['plugin']) && $attributes['plugin'] === $this->controller->plugin) {
                 $this->controller->plugin = null;
