@@ -235,7 +235,7 @@ trait QueryTrait
      * @param $template
      * @param string $ext
      */
-    public function script($template, $ext = '.ptp'){
+    public function script($template, $args = null, $ext = '.ptp'){
         $dirs = static::paths($this->plugin);
 
         $lang = Bit::getPreferredLanguage();
@@ -247,7 +247,7 @@ trait QueryTrait
                     $file = null;
             }
             if($file){
-                extract($this->viewVars);
+                extract(is_array($args)?$args:$this->viewVars);
                 try {
                     return include $file;
                 }catch(\Exception $e){
