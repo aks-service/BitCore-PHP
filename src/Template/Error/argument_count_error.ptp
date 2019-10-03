@@ -11,9 +11,9 @@ $line = (string)$error->getLine();
 
 $this['[data-message]']
     ->append(h($message))->append('<br>')
-        ->append('<strong>File</strong>')
-        ->append(h($file))->append('<br>')
-        ->append('<strong>Line</strong>')
-        ->append(h($line))->append('<br>')
+    ->append('<strong>File</strong>')
+    ->append(h($file))->append('<br>')
+    ->append('<strong>Line</strong>')
+    ->append(h($line))->append('<br>')
 ;
 

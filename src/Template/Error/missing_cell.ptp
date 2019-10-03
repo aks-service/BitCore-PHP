@@ -1,14 +1,4 @@
 <?php
-/**
- * ERPaks
- *
- * @author       Sören Eckart <mailto:se@aks-service.de>
- * @link         http://www.aks-service.de/
- * @copyright    Copyright (c) 2010 - 2019 aks Service GmbH
- * @version      v4.1.5
- *
- */
-
 use Bit\Core\Plugin;
 use Bit\Core\Configure;
 use Bit\Utility\Inflector;

@@ -175,6 +175,7 @@ class Component implements EventListenerInterface
             'Controller.initialize' => 'beforeFilter',
             'Controller.startup' => 'startup',
             'Controller.beforeRender' => 'beforeRender',
+            'Controller.beforeRunAction' => 'beforeRunAction',
             'Controller.beforeRedirect' => 'beforeRedirect',
             'Controller.shutdown' => 'shutdown',
         ];

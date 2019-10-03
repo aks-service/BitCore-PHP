@@ -1,5 +1,5 @@
 <?php
-$this->setTitle(__d('bit','Parse Error'));
+$this->setTitle(__d('bit','Syntax Error'));
 $this->loadTemplate("Error/error500");
 
 $file = (string)$error->getFile();
