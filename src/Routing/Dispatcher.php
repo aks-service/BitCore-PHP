@@ -116,6 +116,7 @@ class Dispatcher
         }
 
         if (!$response && $controller->autoRender) {
+            
             $response = $controller->render();
         } elseif (!$response) {
             $response = $controller->response;

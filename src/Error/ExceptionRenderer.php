@@ -335,8 +335,6 @@ class ExceptionRenderer
             }
             return $this->_outputMessageSafe('error500');
         } catch (Exception $e) {
-            var_dump($e);
-            die();
             return $this->_outputMessageSafe('error500');
         }
     }

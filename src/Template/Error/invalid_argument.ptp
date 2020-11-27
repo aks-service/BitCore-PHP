@@ -7,4 +7,3 @@ $this['[data-message]']
         ->append(h($error->getFile()))->append('<br>')
         ->append('<strong>Line</strong>')
         ->append(h($error->getLine()))->append('<br>');
-
