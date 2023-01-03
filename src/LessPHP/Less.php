@@ -134,7 +134,9 @@ abstract class Less
     function __debugInfo()
     {
         return [
-            'parent' => get_class($this->_parent),
+            'parent' => isset($this->_parent)
+                ? get_class($this->_parent)
+                : null,
             'tags' => $this->tags
         ];
     }
